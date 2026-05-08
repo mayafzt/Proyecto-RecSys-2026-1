@@ -11,10 +11,14 @@
 \usepackage{xurl}
 \usepackage{hyperref}
 \usepackage{enumitem}
+\usepackage[font=small,skip=2pt]{caption}
+\usepackage{titlesec}
+\usepackage{microtype}
 
 \setlength{\parskip}{0.35em}
 \setlength{\parindent}{0pt}
 \setlist[itemize]{leftmargin=1.1em,itemsep=0.1em,topsep=0.1em}
+\titlespacing*{\section}{0pt}{0.65em}{0.25em}
 
 \title{\vspace{-1.2cm}
 \normalsize Pontificia Universidad Católica de Chile\\
@@ -173,6 +177,8 @@ Durante el desarrollo del Hito 1 se utilizó asistencia de IA generativa como ap
 En particular, la IA se empleó para: (i) transformar el análisis exploratorio y resultados preliminares en un formato de informe LaTeX; (ii) revisar que el informe cubriera los puntos solicitados para Hito 1; (iii) sugerir una justificación técnica para usar DuckDB y una muestra determinística del 30\%; y (iv) apoyar la revisión de código para generar métricas, figuras y archivos de resultados. Las conversaciones utilizadas como apoyo serán compartidas junto con la entrega, según corresponda.
 
 Los principales prompts y conversaciones compartidas fueron:
+\begingroup
+\footnotesize
 \begin{itemize}
     \item Revisión del enunciado y checklist del Hito 1: \url{https://chatgpt.com/share/69fe7497-b264-83e9-af99-d39056a4bdc1}
     \item Actualización al dataset definitivo Spotify Playlists: \url{https://chatgpt.com/share/69fe757d-a82c-83e9-ba6e-c106809575d2}
@@ -180,9 +186,12 @@ Los principales prompts y conversaciones compartidas fueron:
     \item Implementación y verificación de baselines: \url{https://chatgpt.com/share/69fe7523-8ac0-83e9-a7c6-0a46f9c092a0}
     \item Generación de figuras para el análisis descriptivo y resultados: \url{https://chatgpt.com/share/69fe74e5-c4d0-83e9-911f-0ecdaddd7898}
 \end{itemize}
+\endgroup
 
 \section{Bibliografía}
 
+\begingroup
+\footnotesize
 \begin{itemize}
     \item Andrew Mvd. \textit{Spotify Playlists}. Kaggle. \url{https://www.kaggle.com/datasets/andrewmvd/spotify-playlists}
     \item Raasveldt, M. y Mühleisen, H. \textit{DuckDB: An Embeddable Analytical Database}. CIDR, 2020. \url{https://duckdb.org/library/duckdb/}
@@ -191,5 +200,6 @@ Los principales prompts y conversaciones compartidas fueron:
     \item Ricci, F., Rokach, L. y Shapira, B. \textit{Recommender Systems Handbook}. Springer, 2015.
     \item He, X., Deng, K., Wang, X., Li, Y., Zhang, Y. y Wang, M. \textit{LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation}. SIGIR, 2020.
 \end{itemize}
+\endgroup
 
 \end{document}
