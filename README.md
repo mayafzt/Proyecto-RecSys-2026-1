@@ -1,36 +1,46 @@
-# Repositorio utilizado para el proyecto del curso IIC3633 - Sistemas Recomendadores
+# Proyecto IIC3633 - Sistemas Recomendadores
 
-## hito_1.ipynb
+Este repositorio contiene el avance del Hito 1 del proyecto del curso.
 
-Contiene el analisis del dataset utilizado mas los primeros modelos utilizados:
+**Curso:** Sistemas recomendadores  
+**Integrantes:** Agustin Llambias, Amaya Quero, Larry Uribe
+
+## Archivos principales
+
+- `Hito_1_Propuesta.md`: propuesta escrita para el Hito 1, incluyendo problema, objetivos, baselines, plan Midterm y bibliografia.
+- `Informe_Hito_1_Overleaf.tex`: informe en LaTeX listo para compilar en Overleaf.
+- `Informe H1.pdf`: PDF compilado del informe para entrega.
+- `figures/`: figuras usadas por el informe LaTeX.
+- `Hito_1_LastFM.ipynb`: notebook principal ejecutado con el dataset real de Last.fm.
+- `Hito_1.ipynb`: notebook preliminar original del dominio musical.
+- `hito1_lastfm_baselines.py`: script reproducible con EDA basico y baselines sobre el CSV real de Last.fm.
+- `resultados_hito1_lastfm.md`: resultados generados por el script.
+- `resultados_hito1_lastfm.csv`: tabla de metricas exportada desde el notebook.
+- `Nube.png`: visualizacion generada durante el analisis exploratorio.
+- `Enunciado_Proyecto_Final_RecSys_2026_1.pdf`: enunciado del proyecto.
+
+## Baselines preliminares
+
+El notebook contiene el analisis del dataset utilizado y los primeros modelos:
 
 - Random
 - Most Popular
-- Content-Based Texto
+- Favorite Artist Popular
 
-## Acerca del Dataset: Spotify playlists dataset
+## Dataset
 
-[Descargar Dataset](https://uccl0-my.sharepoint.com/:u:/g/personal/afquero_uc_cl/IQBg7Y9laKsOQIqpGzagC61DAdErpw4hyh24en2Mezmu1Iw?e=ApegGJ)
+Fuente propuesta para la entrega: [Last.FM_dataset en Kaggle](https://www.kaggle.com/datasets/harshal19t/lastfm-dataset).
 
-This dataset is based on the subset of users in the #nowplaying dataset who publish their #nowplaying tweets via Spotify. In principle, the dataset holds users, their playlists and the tracks contained in these playlists. 
+El dataset fue descargado con `kagglehub` y copiado a `data/Last.fm_data.csv`. Los archivos grandes del dataset no se versionan en Git.
 
-The csv-file holding the dataset contains the following columns: 
+> Nota de consistencia: el notebook original fue escrito para un CSV musical normalizado con columnas tipo `user_id`, `artist_name`, `track_name` y, cuando existe, `playlist_name`. El script `hito1_lastfm_baselines.py` ya trabaja con las columnas reales de Last.fm: `Username`, `Artist`, `Track`, `Album`, `Date` y `Time`.
 
-```
-"user_id", "artistname", "trackname", "playlistname"
-```
+## Reproduccion
 
-, where
+1. Descargar el dataset desde Kaggle o usar `kagglehub.dataset_download("harshal19t/lastfm-dataset")`.
+2. Dejar el CSV como `data/Last.fm_data.csv`.
+3. Ejecutar `jupyter nbconvert --to notebook --execute Hito_1_LastFM.ipynb --inplace`.
+4. Alternativamente, ejecutar `python hito1_lastfm_baselines.py`.
+5. Revisar `resultados_hito1_lastfm.md` y la propuesta `Hito_1_Propuesta.md`.
 
-- `user_id` is a hash of the user's Spotify user name
-- `artistname` is the name of the artist
-- `trackname` is the title of the track and
-- `playlistname` is the name of the playlist that contains this track.
-
-The separator used is , each entry is enclosed by double quotes and the escape character used is \.
-
-A description of the generation of the dataset and the dataset itself can be found in the following paper:
-
-Pichl, Martin; Zangerle, Eva; Specht, Günther: "Towards a Context-Aware Music Recommendation Approach: What is Hidden in the Playlist Name?" in 15th IEEE International Conference on Data Mining Workshops (ICDM 2015), pp. 1360-1365, IEEE, Atlantic City, 2015.
-
-
+Para compilar el informe en Overleaf, subir `Informe_Hito_1_Overleaf.tex` junto con la carpeta `figures/`.

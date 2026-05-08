@@ -1,5 +1,9 @@
 /spotify_dataset.csv
 /spotify_dataset.zip
+/lastfm_dataset.csv
+/Last.FM_dataset.csv
+/lastfm-dataset.zip
+/data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
