@@ -1,46 +1,93 @@
 # Proyecto IIC3633 - Sistemas Recomendadores
 
-Este repositorio contiene el avance del Hito 1 del proyecto del curso.
+Pontificia Universidad Catolica de Chile  
+Marzo-Julio 2026
 
-**Curso:** Sistemas recomendadores  
 **Integrantes:** Agustin Llambias, Amaya Quero, Larry Uribe
+
+Este repositorio contiene el avance del Hito 1 del proyecto: recomendacion musical personalizada usando playlists de Spotify.
 
 ## Archivos principales
 
-- `Hito_1_Propuesta.md`: propuesta escrita para el Hito 1, incluyendo problema, objetivos, baselines, plan Midterm y bibliografia.
 - `Informe_Hito_1_Overleaf.tex`: informe en LaTeX listo para compilar en Overleaf.
-- `Informe H1.pdf`: PDF compilado del informe para entrega.
+- `Hito_1_Propuesta.md`: version Markdown de la propuesta.
+- `Hito_1_Spotify.ipynb`: notebook ejecutado del pipeline final con Spotify Playlists.
+- `hito1_spotify_baselines.py`: script reproducible con EDA, muestra del 30%, baselines y figuras.
+- `resultados_hito1_spotify.md`: resumen de resultados generado por el script.
+- `resultados_hito1_spotify.csv`: tabla de metricas exportada.
 - `figures/`: figuras usadas por el informe LaTeX.
-- `Hito_1_LastFM.ipynb`: notebook principal ejecutado con el dataset real de Last.fm.
-- `Hito_1.ipynb`: notebook preliminar original del dominio musical.
-- `hito1_lastfm_baselines.py`: script reproducible con EDA basico y baselines sobre el CSV real de Last.fm.
-- `resultados_hito1_lastfm.md`: resultados generados por el script.
-- `resultados_hito1_lastfm.csv`: tabla de metricas exportada desde el notebook.
-- `Nube.png`: visualizacion generada durante el analisis exploratorio.
+- `prompts_ia_hito1.md`: resumen de prompts usados para documentar apoyo de IA.
+- `requirements.txt`: dependencias Python usadas por el pipeline.
 - `Enunciado_Proyecto_Final_RecSys_2026_1.pdf`: enunciado del proyecto.
-
-## Baselines preliminares
-
-El notebook contiene el analisis del dataset utilizado y los primeros modelos:
-
-- Random
-- Most Popular
-- Favorite Artist Popular
 
 ## Dataset
 
-Fuente propuesta para la entrega: [Last.FM_dataset en Kaggle](https://www.kaggle.com/datasets/harshal19t/lastfm-dataset).
+Fuente: [Spotify Playlists en Kaggle](https://www.kaggle.com/datasets/andrewmvd/spotify-playlists).
 
-El dataset fue descargado con `kagglehub` y copiado a `data/Last.fm_data.csv`. Los archivos grandes del dataset no se versionan en Git.
+El archivo activo es:
 
-> Nota de consistencia: el notebook original fue escrito para un CSV musical normalizado con columnas tipo `user_id`, `artist_name`, `track_name` y, cuando existe, `playlist_name`. El script `hito1_lastfm_baselines.py` ya trabaja con las columnas reales de Last.fm: `Username`, `Artist`, `Track`, `Album`, `Date` y `Time`.
+```text
+data/spotify_dataset.csv
+```
+
+El CSV no se versiona en Git porque pesa aproximadamente 1.18 GB. Para este Hito 1 se usa una muestra deterministica del 30% de playlists, preservando playlists completas mediante hashing de `user_id` y `playlistname`. La justificacion esta documentada en el informe.
+
+## Por que DuckDB
+
+El pipeline usa DuckDB para leer y consultar el CSV completo antes de pasar a pandas. La razon es que el archivo tiene 12.2M filas y pesa aproximadamente 1.18 GB; cargarlo completo como un unico DataFrame no es necesario para el Hito 1 y puede ser lento o inestable en memoria.
+
+DuckDB permite ejecutar consultas SQL analiticas directamente sobre archivos CSV locales, por lo que se usa para:
+
+- calcular estadisticas globales del dataset completo;
+- construir una muestra deterministica del 30% preservando playlists completas;
+- evitar materializar todo el CSV en memoria antes de reducir la escala.
+
+Despues de esa reduccion, pandas se usa para baselines, metricas y figuras.
+
+Referencias:
+
+- Raasveldt, M. y Muhleisen, H. DuckDB: An Embeddable Analytical Database. CIDR, 2020. https://duckdb.org/library/duckdb/
+- DuckDB Documentation. CSV Import. https://duckdb.org/docs/stable/data/csv/overview
+
+## Baselines
+
+- Random
+- Most Popular
+- Playlist Name Popular
 
 ## Reproduccion
 
-1. Descargar el dataset desde Kaggle o usar `kagglehub.dataset_download("harshal19t/lastfm-dataset")`.
-2. Dejar el CSV como `data/Last.fm_data.csv`.
-3. Ejecutar `jupyter nbconvert --to notebook --execute Hito_1_LastFM.ipynb --inplace`.
-4. Alternativamente, ejecutar `python hito1_lastfm_baselines.py`.
-5. Revisar `resultados_hito1_lastfm.md` y la propuesta `Hito_1_Propuesta.md`.
+1. Descargar el dataset desde Kaggle.
+2. Dejar el CSV como `data/spotify_dataset.csv`.
+3. Instalar dependencias:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+4. Ejecutar:
+
+```powershell
+python hito1_spotify_baselines.py
+```
+
+5. Revisar:
+
+```text
+resultados_hito1_spotify.md
+resultados_hito1_spotify.csv
+figures/
+```
 
 Para compilar el informe en Overleaf, subir `Informe_Hito_1_Overleaf.tex` junto con la carpeta `figures/`.
+
+## Uso de IA
+
+Se utilizo IA generativa como apoyo para estructurar el informe, revisar cumplimiento del enunciado, depurar/verificar codigo, justificar el uso de DuckDB y preparar el formato LaTeX. Las decisiones metodologicas, seleccion del dataset, interpretacion de resultados y validacion final son responsabilidad del grupo.
+
+Las conversaciones compartidas y prompts sinteticos estan documentados en `prompts_ia_hito1.md`. URLs principales:
+
+- Revision del enunciado y checklist: https://chatgpt.com/share/69fe7497-b264-83e9-af99-d39056a4bdc1
+- Actualizacion al dataset Spotify: https://chatgpt.com/share/69fe757d-a82c-83e9-ba6e-c106809575d2
+- Procesamiento eficiente del CSV y figuras: https://chatgpt.com/share/69fe74e5-c4d0-83e9-911f-0ecdaddd7898
+- Implementacion y verificacion de baselines: https://chatgpt.com/share/69fe7523-8ac0-83e9-a7c6-0a46f9c092a0

@@ -1,119 +1,93 @@
 # Hito 1: Propuesta, analisis y baselines
 
-**Curso:** Sistemas recomendadores  
+**Pontificia Universidad Catolica de Chile**  
+**Curso:** IIC3633 Sistemas Recomendadores  
+**Periodo:** Marzo-Julio 2026  
 **Integrantes:** Agustin Llambias, Amaya Quero, Larry Uribe
 
 ## Titulo tentativo
 
-Recomendacion musical personalizada a partir de historiales de escucha de Last.fm.
+Recomendacion musical personalizada usando playlists de Spotify.
 
 ## Descripcion del problema y justificacion
 
-Los servicios de musica digital concentran catalogos muy grandes, por lo que un usuario puede tener dificultades para descubrir canciones o artistas alineados con sus gustos. En este contexto, un sistema recomendador permite ordenar el catalogo y sugerir items relevantes usando informacion historica de interacciones. El proyecto se enfocara en recomendacion musical personalizada usando registros de escucha como retroalimentacion implicita: si un usuario escucho una cancion, se asume que existe una senal positiva de interes, aunque no haya una calificacion explicita.
+Los servicios de musica digital concentran catalogos muy grandes, por lo que un usuario puede tener dificultades para descubrir canciones alineadas con sus gustos o con el contexto de escucha que desea. En este proyecto se aborda un problema de recomendacion musical personalizada a partir de playlists: dado un conjunto de canciones ya presentes en una playlist, recomendar canciones candidatas que podrian completar o enriquecer esa playlist.
 
-El problema principal sera: dado el historial de escucha de un usuario, recomendar canciones o artistas que el usuario no haya escuchado previamente y que tengan alta probabilidad de ser relevantes para el. Este caso es representativo de sistemas recomendadores reales porque trabaja con datos implicitos, alta cardinalidad de items, sesgos de popularidad y posible dispersion de interacciones entre usuarios e items.
+El dataset utilizado es Spotify Playlists de Kaggle, disponible en https://www.kaggle.com/datasets/andrewmvd/spotify-playlists. El archivo local utilizado es `data/spotify_dataset.csv`, con columnas `user_id`, `artistname`, `trackname` y `playlistname`. Cada registro indica que una cancion de un artista aparece en una playlist asociada a un usuario. Como no existen ratings explicitos, se interpreta la aparicion de una cancion en una playlist como feedback implicito positivo.
 
-El dataset propuesto es Last.FM_dataset de Kaggle, disponible en https://www.kaggle.com/datasets/harshal19t/lastfm-dataset. En la version descargada se observan 166.153 registros de escucha, donde cada registro indica que usuario escucho una cancion, junto con artista, album, fecha y hora. Este tipo de dato permite formular el problema como recomendacion top-N usando interacciones usuario-item. Dado que no existen ratings explicitos, se interpreta cada escucha como feedback implicito positivo.
+## Objetivos
 
-## Objetivos del proyecto
+El objetivo general es construir y evaluar un sistema de recomendacion musical para completar playlists de Spotify, comparando baselines simples con metodos personalizados bajo un protocolo reproducible de evaluacion offline.
 
-El objetivo general es construir y evaluar un sistema de recomendacion musical personalizada sobre datos de Last.fm, comparando baselines simples con metodos mas expresivos bajo un protocolo reproducible de evaluacion offline.
+Objetivos especificos:
 
-Los objetivos especificos son:
+- Caracterizar el dataset mediante analisis descriptivo de usuarios, artistas, canciones, playlists e interacciones.
+- Definir un protocolo train/test para evaluar recomendacion top-N a nivel de playlist.
+- Implementar al menos tres modelos de referencia: Random, Most Popular y un modelo especifico al dominio de playlists.
+- Comparar los modelos usando HitRate@10, Precision@10, MAP@10 y nDCG@10.
+- Desarrollar en Midterm un metodo mas avanzado, como filtrado colaborativo item-item, factorizacion matricial implicita o un enfoque hibrido basado en texto de playlists y co-ocurrencia de canciones.
 
-- Caracterizar el dataset mediante analisis descriptivo de usuarios, canciones, artistas e interacciones.
-- Definir un protocolo de train/test que permita evaluar recomendacion top-N con datos implicitos.
-- Implementar al menos tres modelos de referencia: Random, Most Popular y un modelo especifico al dominio musical.
-- Comparar los modelos usando metricas de ranking como Hit Rate@K, Precision@K, MAP@K y nDCG@K.
-- Desarrollar en la etapa Midterm un metodo mas avanzado, por ejemplo filtrado colaborativo item-item, factorizacion matricial para feedback implicito o un enfoque hibrido que incorpore metadatos musicales.
-- Analizar criticamente las limitaciones del dataset y del protocolo de evaluacion, especialmente por el bajo numero de usuarios y la alta cantidad de items relevantes por usuario.
+## Analisis descriptivo
 
-## Analisis descriptivo de los datos
+El archivo completo contiene:
 
-La version descargada contiene 166.153 registros, 11 usuarios, 22.823 artistas, 67.241 nombres de tracks, 76.038 items unicos definidos como par artista-track y 38.629 albumes. No se encontraron duplicados exactos y existen 12 albumes faltantes. El rango temporal cubre escuchas entre el 1 y el 31 de enero de 2021.
+- 12.199.339 registros validos.
+- 15.889 usuarios.
+- 271.369 artistas.
+- 1.854.175 nombres de tracks.
+- 2.614.129 items unicos definidos como par artista-cancion.
+- 225.591 playlists usuario-nombre.
 
-La matriz usuario-item tiene sparsity aproximada de 0,8411, equivalente a una densidad de 15,89% sobre los pares usuario-item posibles. Aunque este valor es menos extremo que en datasets de recomendacion masivos, el catalogo sigue siendo amplio respecto del numero de usuarios. La distribucion de interacciones por usuario es desbalanceada: el usuario con menos registros tiene 1.063 escuchas, mientras que el maximo alcanza 33.695. A nivel de items tambien hay concentracion de popularidad: la mayoria de canciones aparece una o dos veces, mientras que algunos items populares superan ampliamente ese valor.
+Para este Hito 1 se trabajo con una muestra deterministica del 30% de las playlists, preservando playlists completas mediante hashing de `user_id` y `playlistname`. Esta decision se justifica porque el CSV pesa aproximadamente 1,18 GB y el objetivo del hito es exploratorio: entender los datos, validar un protocolo de evaluacion e implementar baselines iniciales. La muestra es reproducible y suficientemente grande para observar patrones robustos.
 
-Los artistas mas escuchados en el dataset incluyen Sophie, Madlib, Bicep, Taylor Swift y Arlo Parks. Entre los items mas frecuentes aparecen, por ejemplo, "Metric - Cascades (Dirt Road Version)" y "Ocean Waves For Sleep - Rolling Ocean Waves". Estos patrones justifican incluir un baseline de popularidad y, al mismo tiempo, evaluar metodos personalizados que no se limiten a recomendar solamente los items globalmente dominantes.
+Para procesar el archivo se utilizo DuckDB en vez de cargar el CSV completo directamente con pandas. DuckDB es una base de datos analitica embebida orientada a ejecutar consultas SQL eficientes sobre archivos locales. En este proyecto se uso para calcular estadisticas globales del CSV completo y construir la muestra reproducible del 30% sin materializar inicialmente los 12,2 millones de filas como un unico DataFrame en memoria. Luego se uso pandas para la evaluacion de baselines y visualizaciones.
 
-## Baselines implementados o propuestos
+La muestra contiene 3.721.218 registros, 12.745 usuarios, 150.326 artistas, 947.293 tracks, 1.273.839 items artista-cancion y 68.012 playlists. La mediana de canciones por playlist es 11 y el promedio es 54,71, lo que evidencia alta variabilidad en el tamano de playlists. Ademas, la distribucion de popularidad de canciones tiene cola larga: pocas canciones aparecen en muchas playlists y la mayoria aparece pocas veces.
 
-### 1. Random
+## Baselines y protocolo experimental
 
-Este modelo recomienda K canciones al azar desde el conjunto de canciones observadas en entrenamiento. Es un baseline minimo que sirve para verificar que las metricas y el protocolo de evaluacion funcionen correctamente. Se espera que tenga desempeno muy bajo, especialmente cuando el catalogo es grande.
+La evaluacion usa un esquema leave-last-out por playlist. Para cada playlist con al menos tres canciones, se oculta la ultima cancion como item de test y se usan las canciones previas como contexto de entrenamiento. El modelo debe recomendar un ranking top-10 de canciones candidatas no vistas en esa playlist.
 
-### 2. Most Popular
+Se evaluaron 63.851 playlists de la muestra, con un catalogo de entrenamiento de 1.258.737 items.
 
-Este modelo recomienda las K canciones o artistas mas frecuentes en el conjunto de entrenamiento. No es personalizado, pero suele ser un baseline competitivo en dominios donde la popularidad esta muy concentrada. En el notebook preliminar, Most Popular supera a Random en Hit Rate@10, lo que confirma que la popularidad global captura parte de la senal del dataset.
+Baselines implementados:
 
-### 3. Favorite Artist Popular
+- **Random:** recomienda canciones aleatorias no presentes en la playlist.
+- **Most Popular:** recomienda las canciones mas frecuentes del conjunto de entrenamiento, excluyendo las ya presentes en la playlist.
+- **Playlist Name Popular:** usa tokens del nombre de la playlist para recomendar canciones populares en playlists con nombres similares. Es especifico al problema, porque explota informacion contextual de playlists.
 
-Como tercer baseline especifico al dominio musical se implemento un recomendador basado en los artistas favoritos del usuario. Primero se identifican los artistas mas escuchados por cada usuario en train. Luego se recomiendan canciones populares de esos artistas que el usuario no haya escuchado previamente. Si no se completa el top-K, el modelo rellena con canciones populares globales no vistas por el usuario.
-
-Este baseline es simple, pero ya introduce personalizacion usando una senal musical interpretable: la afinidad historica usuario-artista.
-
-### Resultados preliminares
-
-Se implementaron los tres baselines en `hito1_lastfm_baselines.py`. La evaluacion usa split temporal por usuario: 80% de las interacciones para train y 20% para test. Para medir recomendacion de descubrimiento, los items relevantes son canciones futuras que el usuario no habia escuchado en train.
-
-Adicionalmente, se dejo un notebook ejecutado, `Hito_1_LastFM.ipynb`, que contiene la carga del dataset, analisis descriptivo, visualizaciones, definicion de metricas, implementacion de baselines y exportacion de resultados.
+Resultados preliminares:
 
 | Modelo | HitRate@10 | Precision@10 | MAP@10 | nDCG@10 |
 | --- | ---: | ---: | ---: | ---: |
-| Random | 0,3636 | 0,0364 | 0,0074 | 0,0310 |
-| Most Popular | 0,0909 | 0,0455 | 0,0202 | 0,0367 |
-| Favorite Artist Popular | 0,4545 | 0,0455 | 0,0133 | 0,0459 |
+| Random | 0,0000 | 0,0000 | 0,0000 | 0,0000 |
+| Most Popular | 0,0011 | 0,0001 | 0,0001 | 0,0004 |
+| Playlist Name Popular | 0,0119 | 0,0012 | 0,0041 | 0,0058 |
 
-Los resultados muestran que el baseline personalizado por artista obtiene el mayor HitRate@10 y nDCG@10, mientras que Most Popular logra el mejor MAP@10. Esto sugiere que la informacion de artistas aporta una senal personalizada util, pero aun hay espacio para mejorar el ordenamiento fino de las recomendaciones.
+Los resultados muestran que el baseline basado en nombre de playlist supera a Random y Most Popular en todas las metricas. Aunque los valores absolutos son bajos, esto es esperable por el tamano del catalogo y por la dificultad del protocolo: se intenta predecir una cancion especifica entre mas de un millon de candidatos.
 
-Es importante interpretar estos resultados con cautela. Random obtiene un HitRate@10 relativamente alto porque, bajo el split temporal utilizado, cada usuario conserva en promedio 2.291 items relevantes futuros. Por lo tanto, HitRate@10 es una metrica poco exigente en este primer experimento y debe complementarse con Precision@10, MAP@10 y nDCG@10. Para Midterm se propone evaluar tambien con negative sampling o con un test set mas restringido por usuario, de modo que la comparacion entre modelos sea mas exigente.
-
-## Protocolo de evaluacion
-
-Se utilizara una particion train/test temporal por usuario. Para cada usuario con al menos dos interacciones, se ordenaran las escuchas por fecha y hora, se usara el 80% inicial como train y el 20% final como test. Luego cada modelo generara un ranking top-K de canciones no vistas por el usuario en train.
-
-Las metricas principales seran:
-
-- Hit Rate@10: indica si al menos un item relevante aparece entre las 10 recomendaciones.
-- Precision@10: mide la proporcion de recomendaciones relevantes dentro del top 10.
-- MAP@10: considera la posicion de los aciertos en el ranking.
-- nDCG@10: premia que los items relevantes aparezcan en posiciones mas altas.
-
-Si se decide transformar conteos de escucha en ratings explicitos, tambien se podrian reportar MAE o RMSE para comparar prediccion de ratings, aunque para recomendacion musical top-N las metricas de ranking son mas adecuadas.
-
-La decision de usar split temporal, en lugar de un split aleatorio, busca evitar filtracion de informacion futura hacia el entrenamiento. Esto es especialmente relevante en recomendacion musical, donde el gusto del usuario puede cambiar en el tiempo y donde un split aleatorio podria mezclar escuchas posteriores dentro de train.
-
-## Limitaciones actuales
-
-La principal limitacion del dataset descargado es el bajo numero de usuarios: existen solo 11 usuarios, aunque cada uno tiene muchas interacciones. Esto permite estudiar personalizacion a nivel individual, pero limita la generalizacion estadistica de los resultados y vuelve menos estable la comparacion agregada entre modelos. Por esta razon, las conclusiones del Hito 1 deben entenderse como evidencia preliminar y no como resultados finales.
-
-Otra limitacion es que el dataset no incluye ratings explicitos ni informacion semantica rica como generos o tags. Para este hito se trabajo con feedback implicito y metadatos basicos de artista, track, album y tiempo. En Midterm se evaluara si conviene enriquecer el dataset con informacion externa o concentrarse en metodos colaborativos que exploten mejor la matriz de escuchas.
-
-## Planificacion para Midterm
+## Planificacion Midterm
 
 | Fecha | Actividad | Resultado esperado |
 | --- | --- | --- |
 | 08/05 | Cierre Hito 1 | Propuesta, EDA y baselines iniciales documentados. |
-| 09/05 - 16/05 | Limpieza y normalizacion definitiva del dataset Last.fm | CSV procesado, matriz usuario-item y split reproducible. |
-| 17/05 - 24/05 | Implementacion de filtrado colaborativo | Modelos user-user e item-item con similitudes coseno, Jaccard o Pearson/Spearman. |
-| 25/05 - 31/05 | Implementacion de metodo avanzado | Factorizacion matricial para feedback implicito o modelo hibrido contenido + colaborativo. |
-| 01/06 - 04/06 | Evaluacion y analisis | Tabla comparativa de metricas, analisis de errores y limitaciones. |
-| 05/06 | Entrega Midterm | Informe intermedio con resultados preliminares del metodo avanzado. |
+| 09/05 - 16/05 | Limpieza y normalizacion | Pipeline reproducible, validacion de muestra y matriz playlist-cancion. |
+| 17/05 - 24/05 | Filtrado colaborativo | Modelos item-item basados en co-ocurrencia de canciones en playlists. |
+| 25/05 - 31/05 | Metodo avanzado | Factorizacion matricial implicita o modelo hibrido texto + co-ocurrencia. |
+| 01/06 - 04/06 | Evaluacion y analisis | Tabla comparativa, cobertura, analisis de errores y sensibilidad a muestra. |
+| 05/06 | Entrega Midterm | Informe intermedio con resultados preliminares. |
 
-Los criterios de exito para Midterm seran:
+## Limitaciones y riesgos
 
-- Superar el baseline Most Popular en al menos una metrica de ranking top-K.
-- Mantener cobertura razonable de usuarios e items, evitando recomendar solo canciones muy populares.
-- Reportar tiempos de ejecucion y limitaciones de memoria para justificar decisiones de muestreo o filtrado.
-- Dejar el pipeline suficientemente documentado para reproducir los resultados.
+La principal limitacion del Hito 1 es el uso de una muestra del 30%. Esta muestra es suficientemente grande para analisis preliminar, pero no reemplaza una evaluacion final sobre el dataset completo o sobre varias muestras. Para mitigar este riesgo, la muestra se construyo de manera deterministica y preservando playlists completas.
 
-## Riesgos y mitigaciones
+Otra limitacion es que el dataset no incluye audio features, generos ni ratings explicitos. Por ello, los modelos iniciales dependen de popularidad, co-ocurrencia y texto de playlists. En Midterm se evaluaran metodos colaborativos mas fuertes y posibles enriquecimientos de contenido si existe una fuente confiable para cruzar metadatos.
 
-Un primer riesgo es que el bajo numero de usuarios limite la validez externa de los resultados. Para mitigarlo se reportaran metricas por usuario, no solo promedios agregados, y se analizara la sensibilidad de los resultados al protocolo de evaluacion. Un segundo riesgo es que el dataset tenga pocas columnas de contenido. Si esto ocurre, se priorizara filtrado colaborativo item-item o factorizacion matricial. Un tercer riesgo es el costo computacional: algunos metodos exactos pueden ser caros si el catalogo crece mucho, por lo que se usaran matrices sparse, muestreo controlado y evaluacion por batches.
+## Bibliografia
 
-## Bibliografia relevante
-
-- Harshalsps19t. Last.FM_dataset. Kaggle, 2023. https://www.kaggle.com/datasets/harshal19t/lastfm-dataset
-- Sgardelis, K., Margaris, D., Spiliotopoulos, D. y Vassilakis, C. An evaluation review of user similarity metrics in sparse collaborative filtering datasets. International Journal of Data Science and Analytics, 2025. https://doi.org/10.1007/s41060-025-00846-4
-- Koren, Y., Bell, R. y Volinsky, C. Matrix factorization techniques for recommender systems. Computer, 42(8), 30-37, 2009. https://doi.org/10.1109/MC.2009.263
-- He, X., Deng, K., Wang, X., Li, Y., Zhang, Y. y Wang, M. LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation. SIGIR, 2020. https://doi.org/10.1145/3397271.3401063
+- Andrew Mvd. Spotify Playlists. Kaggle. https://www.kaggle.com/datasets/andrewmvd/spotify-playlists
+- Raasveldt, M. y Muhleisen, H. DuckDB: An Embeddable Analytical Database. CIDR, 2020. https://duckdb.org/library/duckdb/
+- DuckDB Documentation. CSV Import. https://duckdb.org/docs/stable/data/csv/overview
+- Koren, Y., Bell, R. y Volinsky, C. Matrix factorization techniques for recommender systems. Computer, 42(8), 30-37, 2009.
+- Ricci, F., Rokach, L. y Shapira, B. Recommender Systems Handbook. Springer, 2015.
+- He, X., Deng, K., Wang, X., Li, Y., Zhang, Y. y Wang, M. LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation. SIGIR, 2020.
