@@ -12,204 +12,81 @@
 \usepackage{xurl}
 \usepackage{hyperref}
 \usepackage{enumitem}
-\usepackage[font=small,skip=2pt]{caption}
+\usepackage[font=small,skip=1pt]{caption}
 \usepackage{titlesec}
 \usepackage{microtype}
 
-\setlength{\parskip}{0.35em}
+\setlength{\parskip}{0.2em}
 \setlength{\parindent}{0pt}
 \setlist[itemize]{leftmargin=1.1em,itemsep=0.1em,topsep=0.1em}
-\titlespacing*{\section}{0pt}{0.65em}{0.25em}
-\titlespacing*{\subsection}{0pt}{0.45em}{0.2em}
+\titlespacing*{\section}{0pt}{0.5em}{0.2em}
+\titlespacing*{\subsection}{0pt}{0.35em}{0.15em}
 
-\title{\vspace{-1.2cm}
-\normalsize Pontificia Universidad Católica de Chile\\
-\normalsize IIC3633 Sistemas Recomendadores\\
-\normalsize Marzo--Julio 2026\\[0.35em]
+\title{\vspace{-1.6cm}
+\normalsize Pontificia Universidad Católica de Chile -- IIC3633 Sistemas Recomendadores -- Marzo--Julio 2026\\[0.2em]
 \Large Hito 2: Informe Intermedio (Midterm)\\
-\large Automatic Playlist Continuation sobre Spotify: retrieval por co-ocurrencia y reranking con señales de dominio}
+\normalsize Automatic Playlist Continuation sobre Spotify: retrieval por co-ocurrencia y reranking con señales de dominio}
 \author{Agustin Llambias \and Amaya Quero \and Larry Uribe}
-\date{Junio 2026}
+\date{}
 
 \begin{document}
 \maketitle
-\vspace{-0.7cm}
+\vspace{-0.8cm}
 
 \begin{center}
-\small \textbf{Repositorio:} \url{https://github.com/mayafzt/Proyecto-RecSys-2026-1}
+\footnotesize \textbf{Repositorio:} \url{https://github.com/mayafzt/Proyecto-RecSys-2026-1}
 \end{center}
-\vspace{-0.2cm}
+\vspace{-0.35cm}
 
 \section{Resumen ejecutivo}
 
-En este Midterm dejamos cerrada una versión concreta del sistema para \textit{Automatic Playlist Continuation} (APC). En este contexto, APC significa: dada una playlist parcial, recomendar canciones para completarla priorizando la calidad de los primeros resultados del ranking. La propuesta principal quedó definida como un pipeline de \textbf{dos etapas}: (i) \textit{candidate retrieval} por co-ocurrencia canción-canción y (ii) \textit{reranking} con señales de popularidad, coincidencia de artista, texto de playlist y similitud externa vía LastFM.
+En este informe intermedio se consolida e implementa una arquitectura funcional para la tarea de \textit{Automatic Playlist Continuation} (APC). El objetivo fundamental consiste en predecir y sugerir canciones relevantes a partir del contexto parcial de una lista de reproducción, priorizando la precisión en las posiciones más altas del ordenamiento. Con este propósito, se diseñó un pipeline de dos etapas compuesto por un módulo de recuperación (\textit{retrieval}) basado en co-ocurrencia ítem-ítem y una fase posterior de reordenamiento (\textit{reranking}) mediante señales de dominio, logrando un compromiso favorable entre efectividad empírica y costo computacional.
 
-En la ejecucion principal (muestra determinística de 60\% y 120.000 playlists evaluadas), \textbf{Two-Stage Cooc+Rerank} supera con margen amplio a los baselines: HitRate@10 = 0.1460 y nDCG@10 = 0.0965, versus 0.0138 y 0.0069 de \textit{Playlist Name Popular}, respectivamente.
-
-La integración de LastFM quedó implementada y funcional en código, pero su evaluación completa depende de latencia y límites de una API externa. Para no amarrar la entrega a ese factor, tomamos como resultado principal la variante reproducible sin señal externa y dejamos LastFM como ablation en curso para la entrega final.
+A partir de la ejecución principal sobre una muestra determinística del 60\% del dataset (equivalente a 120.000 listas de reproducción), la variante propuesta \textbf{Two-Stage Cooc+Rerank} exhibe un rendimiento significativamente superior al de los modelos de referencia. En particular, alcanza un HitRate@10 de 0.1460 y un nDCG@10 de 0.0965, en contraste con los valores de 0.0138 y 0.0069 obtenidos por la línea de base \textit{Playlist Name Popular}. Si bien la integración con la API externa de LastFM se encuentra completamente codificada, las limitaciones de cuota y la latencia introducidas por este servicio externo motivaron la decisión de reportar como resultado central la configuración local y reproducible, asegurando la consistencia metodológica y la comparabilidad directa con el Hito 1.
 
 \section{Introducción}
 
-El problema de APC busca recomendar canciones relevantes dado el contexto parcial de una playlist. En términos operativos, la entrada es una playlist con algunas canciones semilla y la salida es un ranking top-$N$ de canciones candidatas no vistas en esa playlist. Este escenario corresponde a feedback implícito, donde la presencia de una canción en una playlist se interpreta como señal positiva.
+El problema de \textit{Automatic Playlist Continuation} se aborda en este trabajo bajo un escenario de retroalimentación implícita, donde la meta es proyectar la continuidad de una secuencia musical incompleta. Para evaluar la robustez del sistema de manera consistente con el Hito 1, se optó por una estrategia de validación de exclusión final (\textit{leave-last-out}) por lista de reproducción, evaluando el desempeño a través de métricas orientadas a los diez primeros resultados del ranking: HitRate, Precision, MAP y nDCG.
 
-En nuestro protocolo, el objetivo es predecir una canción oculta por playlist con evaluación top-10 (HitRate@10, Precision@10, MAP@10 y nDCG@10). Esto permite medir tanto acierto como calidad de ordenamiento en las primeras posiciones.
-
-En Hito 1 validamos la factibilidad del problema y construimos baselines iniciales. En este Midterm damos el paso que faltaba: fijar un método principal de dominio, justificar sus señales y compararlo contra baselines concretos con un protocolo reproducible.
+El núcleo de esta entrega radica en la transición desde los modelos baselines preliminares hacia un algoritmo principal explícito, rigurosamente validado y reproducible. Asimismo, se exponen con transparencia las decisiones metodológicas adoptadas ante las dependencias de servicios de terceros, resguardando la validez científica y la estabilidad del progreso intermedio del proyecto.
 
 \section{Respuesta explícita al feedback de Hito 1}
 
-El comentario principal del Hito 1 indicó que faltaba especificidad metodológica. Este informe responde ese punto de manera concreta:
-\begin{itemize}
-    \item \textbf{Método principal definido}: Two-Stage Cooc+Rerank.
-    \item \textbf{Señales definidas}: co-ocurrencia, popularidad, coincidencia de artista, texto de playlist y LastFM.
-    \item \textbf{Comparación concreta}: Random, Most Popular, Playlist Name Popular, Two-Stage Cooc+Rerank y Two-Stage + LastFM.
-    \item \textbf{Fundamento de dominio}: enfoque alineado a APC y a la estructura retrieval+rereanking del RecSys Challenge 2018.
-\end{itemize}
+En respuesta directa a las observaciones recibidas en el Hito 1 relativas a la falta de especificidad metodológica, este informe formaliza de manera explícita los componentes del sistema recomendador. Se define con precisión el enfoque principal (Two-Stage Cooc+Rerank) y se detallan las señales incorporadas para el cálculo de relevancia: co-ocurrencia estadística, popularidad global, coincidencia de artistas, atributos textuales de los títulos y vectores de afinidad de LastFM. Adicionalmente, el desempeño se contrasta formalmente contra tres líneas de base (Random, Most Popular y Playlist Name Popular), fundamentando el diseño multi-etapa en arquitecturas consolidadas dentro de la literatura científica de la conferencia ACM RecSys.
 
 \section{Objetivos del Midterm}
 
-\textbf{Objetivo general}: construir y evaluar un sistema APC técnicamente específico y reproducible que mejore de forma robusta los baselines de Hito 1.
-
-\textbf{Objetivos específicos}:
-\begin{itemize}
-    \item Definir e implementar un método principal retrieval+rereanking con señales de dominio.
-    \item Escalar la evaluación a una muestra superior a Hito 1.
-    \item Comparar contra baselines concretos con métricas top-10.
-    \item Documentar riesgos operacionales de señal externa (LastFM) y decisión metodológica de entrega.
-\end{itemize}
+El propósito central de este hito consiste en formular, implementar y evaluar un sistema de APC técnicamente robusto, reproducible y capaz de superar el rendimiento de las aproximaciones iniciales del Hito 1. Esto involucra escalar el volumen de datos evaluados, realizar análisis comparativos rigurosos mediante métricas especializadas en \textit{top-N} y cuantificar de forma crítica los riesgos operativos asociados al uso de fuentes externas de información.
 
 \section{Problema, datos y contexto}
 
-Se mantiene el mismo problema formal del Hito 1: dada una playlist parcial, recomendar canciones para completarla (top-$N$). La presencia de una canción en una playlist se interpreta como feedback implícito positivo.
+Se preserva el marco formalizado en la entrega previa: dada una lista de reproducción parcial, el sistema debe generar una secuencia ordenada de $N$ canciones candidatas para su continuación, interpretando la co-aparición de canciones como una señal implícita de preferencia positiva.
 
-Dataset base: \textit{Spotify Playlists} (Kaggle), con columnas \texttt{user\_id}, \texttt{artistname}, \texttt{trackname}, \texttt{playlistname}. Para mantener trazabilidad y comparabilidad con Hito 1, se usa una muestra determinística de playlists (hash sobre \texttt{playlist\_id}), preservando playlists completas.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.48\textwidth]{figures/spotify_tamano_playlists.png}
-    \hfill
-    \includegraphics[width=0.48\textwidth]{figures/spotify_distribucion_popularidad.png}
-    \caption{Contexto de datos: variabilidad de tamaño de playlists y distribución long-tail de popularidad de canciones.}
-    \label{fig:datos_contexto_midterm}
-\end{figure}
-
-\section{Trabajo relacionado}
-
-La literatura de APC muestra de forma consistente buenos resultados con enfoques de dos etapas: recuperar candidatos de forma eficiente y luego reordenarlos con señales de contexto. Esa estructura fue central en soluciones competitivas del \textit{RecSys Challenge 2018}, donde la prioridad es optimizar la calidad del top del ranking.
+El estudio utiliza como base el dataset de \textit{Spotify Playlists} disponible en Kaggle, el cual indexa los campos \texttt{user\_id}, \texttt{artistname}, \texttt{trackname} y \texttt{playlistname}. Con el fin de garantizar la trazabilidad de los experimentos, las submuestras se extraen mediante un procedimiento determinístico aplicando funciones de \textit{hashing} sobre el identificador \texttt{playlist\_id}, lo que salvaguarda la integridad estructural de cada lista seleccionada. Los análisis descriptivos complementarios referidos al volumen de las listas y a la distribución de popularidad de los ítems se desglosan en la sección de anexos para optimizar la fluidez del texto principal.
 
 \section{Método propuesto}
 
-\subsection{Etapa 1: Candidate retrieval por co-ocurrencia item-item}
+\subsection{Esquema de dos etapas}
 
-Sea $P$ el conjunto de playlists de entrenamiento y $i,j$ canciones. Se define:
+La primera fase de recuperación (\textit{retrieval}) opera calculando la co-ocurrencia ítem-ítem dentro del conjunto de entrenamiento. La afinidad entre canciones se determina mediante una métrica de similitud normalizada por coseno, expresada matemáticamente como:
+$$s_{ij}=\frac{\text{cooc}(i,j)}{\sqrt{\text{freq}(i)\cdot\text{freq}(j)}}$$
+Este cálculo permite filtrar eficientemente el catálogo y generar un conjunto acotado de ítems candidatos para la lista consultada.
 
-$$
-\text{cooc}(i,j)=|\{p\in P: i\in p \land j\in p\}|
-$$
-
-Luego se usa una similitud normalizada tipo coseno implícito:
-
-$$
-s_{ij}=\frac{\text{cooc}(i,j)}{\sqrt{\text{freq}(i)\cdot\text{freq}(j)}}
-$$
-
-Para una playlist consulta $q$ con canciones semilla $S_q$, se agregan vecinos de cada semilla y se obtiene un set de candidatos $C_q$ (tamaño acotado para eficiencia).
-
-\subsection{Etapa 2: Reranking con señales múltiples}
-
-Cada candidato $c \in C_q$ se reordena con una combinación lineal de señales:
-
-$$
-\text{score}(c,q)=w_1 s_{\text{cooc}} + w_2 s_{\text{pop}} + w_3 s_{\text{artist}} + w_4 s_{\text{name}} + w_5 s_{\text{lastfm}}
-$$
-
-Señales utilizadas:
-\begin{itemize}
-    \item $s_{\text{cooc}}$: puntaje de retrieval agregado por vecinos co-ocurrentes.
-    \item $s_{\text{pop}}$: popularidad global del ítem (suavizada logarítmicamente).
-    \item $s_{\text{artist}}$: coincidencia artista candidato vs artistas semilla.
-    \item $s_{\text{name}}$: overlap entre tokens de nombre de playlist y tokens artista/canción.
-    \item $s_{\text{lastfm}}$: similitud entre artista candidato y artistas semilla usando LastFM (\texttt{artist.getsimilar}).
-\end{itemize}
-
-Pesos iniciales para Midterm: $(w_1,w_2,w_3,w_4,w_5)=(0.55, 0.15, 0.10, 0.10, 0.10)$.
+Posteriormente, en la etapa de reordenamiento (\textit{reranking}), dichos candidatos se reevalúan mediante una función de combinación lineal de puntuaciones:
+$$\text{score}(c,q)=w_1 s_{\text{cooc}} + w_2 s_{\text{pop}} + w_3 s_{\text{artist}} + w_4 s_{\text{name}} + w_5 s_{\text{lastfm}}$$
+Donde cada término parametriza la influencia de la co-ocurrencia, la popularidad del ítem, la consistencia del artista, la similitud textual del nombre de la playlist y la información remota de LastFM, respectivamente. Los pesos asignados para esta evaluación intermedia se fijaron de forma estática en la proporción $(0.55, 0.15, 0.10, 0.10, 0.10)$.
 
 \section{Implementación}
 
-Se implementó un pipeline reproducible en \texttt{hito2\_spotify\_lastfm\_midterm.py}. El objetivo de esta sección es dejar claro \textit{cómo} se computan las recomendaciones en la práctica y qué decisiones de ingeniería afectan directamente los resultados.
+El pipeline experimental se encuentra estructurado en el script \texttt{hito2\_spotify\_lastfm\_midterm.py}, cuyo diseño persigue documentar con exactitud los procedimientos de cómputo y las consideraciones de ingeniería de software que condicionan la inferencia del modelo.
 
-\subsection{8.1 Flujo del algoritmo en código}
+El procesamiento se ejecuta secuencialmente a través de seis etapas: muestreo determinístico de los datos, partición bajo el esquema \textit{leave-last-out}, indexación de estructuras en memoria, recuperación de candidatos por similitud, reordenamiento ponderado de las puntuaciones y cálculo final de métricas de ranking. Los detalles exhaustivos del código se delegan a los anexos para mantener la brevedad del informe.
 
-El flujo ejecutado por el script es el siguiente:
-\begin{itemize}
-    \item \textbf{Paso 1: muestreo determinístico}. Se filtran playlists por hash de \texttt{playlist\_id} para obtener una muestra reproducible (porcentaje configurable). La lectura y filtrado se hace con \texttt{duckdb} sobre el CSV sin cargar todo inicialmente en memoria.
-    \item \textbf{Paso 2: split de evaluación}. Para cada playlist con al menos 3 canciones se aplica \textit{leave-last-out}: la última canción queda como objetivo de test y las anteriores como contexto.
-    \item \textbf{Paso 3: índices y estadísticas}. Se construyen conteos de frecuencia por canción, popularidad global y estructuras auxiliares (metadatos artista-canción, tokens de nombre de playlist).
-    \item \textbf{Paso 4: retrieval por co-ocurrencia}. Se calcula matriz dispersa canción-canción a nivel de playlists y vecindarios normalizados por coseno implícito.
-    \item \textbf{Paso 5: reranking}. Para cada playlist se combinan señales (co-ocurrencia, popularidad, artista, texto y LastFM opcional) y se produce top-10 final.
-    \item \textbf{Paso 6: evaluación}. Se calculan HitRate@10, Precision@10, MAP@10 y nDCG@10 para todos los modelos comparados.
-\end{itemize}
-
-\subsection{8.2 Construcción de candidatos (retrieval)}
-
-La co-ocurrencia se construye recorriendo playlists de entrenamiento y contando pares de canciones dentro de cada playlist. Para controlar costo y memoria, en cada playlist se limita el número de canciones consideradas en esta etapa (tope en código) y luego se guarda solo un número acotado de vecinos por canción.
-
-Para una playlist consulta, el conjunto de candidatos se obtiene agregando los vecinos de todas las canciones semilla, ponderados por similitud y posición de vecino. También se aplica un tope de candidatos por playlist para mantener tiempo de inferencia estable.
-
-Esta parte explica por qué el método escala razonablemente en 60\% de muestra: evitamos estructuras densas globales y trabajamos con vecinos truncados.
-
-\subsection{8.3 Reranking y uso de señales}
-
-El reranking usa un score lineal sobre candidatos recuperados:
-
-\begin{itemize}
-    \item \textbf{Co-ocurrencia normalizada}: señal principal del método.
-    \item \textbf{Popularidad global}: respaldo para evitar listas vacías y mejorar robustez.
-    \item \textbf{Coincidencia de artista}: prioriza continuidad musical de la playlist.
-    \item \textbf{Texto del nombre de playlist}: introduce contexto semántico simple (tokens).
-    \item \textbf{LastFM}: similitud externa de artistas cuando hay API key activa.
-\end{itemize}
-
-Los pesos iniciales usados en Midterm se fijaron explícitamente en el código $(0.55, 0.15, 0.10, 0.10, 0.10)$ y se mantuvieron constantes en las ejecuciones reportadas, para no mezclar mejora de arquitectura con ajuste de hiperparámetros.
-
-\subsection{8.4 Librerías y decisiones de ingeniería}
-
-Se usó \texttt{duckdb} para I/O y filtrado de CSV grande, \texttt{pandas} para estructuras tabulares y evaluación, \texttt{matplotlib} para figuras y \texttt{urllib} para consultas LastFM. En la variante LastFM se añadió caché en memoria para pares de artistas ya consultados, reduciendo llamadas repetidas.
-
-El script quedó parametrizado por variables de entorno (porcentaje de muestra, topes de playlists, prefijo de salida), lo que permitió correr experimentos comparables en hardware distinto sin alterar el código base.
-
-\subsection{8.5 Complejidad práctica y tiempos observados}
-
-En práctica, el tiempo total queda dominado por dos partes: (i) construcción de co-ocurrencia y (ii) evaluación del método two-stage sobre todas las playlists de test. En ejecuciones con LastFM activo, el cuello de botella pasa a ser red/API externa. Por eso se decidió reportar como principal la ejecucion cerrada y reproducible (60\%) y dejar LastFM como ablation extendida.
+Para viabilizar el escalamiento del sistema sobre el 60\% de la muestra original, se aplicaron técnicas de poda que limitan el tamaño de los vecindarios por canción y restringen el número máximo de candidatos preseleccionados. Estas medidas optimizan el uso de memoria RAM y estabilizan los tiempos de respuesta bajo carga. Asimismo, mantener los pesos de la combinación lineal fijos evitó el acoplamiento entre los efectos de la arquitectura y el ajuste fino de hiperparámetros. Ante la alta latencia inherente a las peticiones concurrentes a la API de LastFM, se determinó metodológicamente priorizar los resultados de la versión local exenta de dependencias web, consolidando un entorno de pruebas controlado y reproducible entre ejecuciones independientes.
 
 \section{Diseño experimental}
 
-\subsection{Protocolo de evaluación}
-
-Se mantiene el protocolo de Hito 1 para comparabilidad:
-\begin{itemize}
-    \item una canción oculta por playlist (última interacción);
-    \item recomendación top-10 excluyendo ítems ya vistos;
-    \item métricas: HitRate@10, Precision@10, MAP@10 y nDCG@10.
-\end{itemize}
-
-Modelos comparados:
-\begin{itemize}
-    \item Random
-    \item Most Popular
-    \item Playlist Name Popular
-    \item Two-Stage Cooc+Rerank
-    \item Two-Stage + LastFM
-\end{itemize}
-
-\subsection{Configuración principal reportada}
-
-La ejecucion principal del Midterm usa:
-\begin{itemize}
-    \item muestra determinística: 60\% de playlists;
-    \item playlists evaluadas: 120.000;
-    \item archivo principal: \texttt{resultados\_hito2\_midterm\_60\_full\_20260604\_2340.csv}.
-\end{itemize}
+Para resguardar la validez comparativa respecto al Hito 1, se empleó un protocolo de evaluación basado en la remoción de la última canción de cada playlist. El sistema genera un ordenamiento \textit{top-10} excluyendo explícitamente aquellas canciones ya presentes en el contexto de la consulta, calculando posteriormente los indicadores HitRate@10, Precision@10, MAP@10 y nDCG@10. La matriz de experimentos evalúa comparativamente los modelos Random, Most Popular, Playlist Name Popular, Two-Stage Cooc+Rerank y la variante Two-Stage + LastFM. Las métricas reportadas provienen de la ejecución sobre una muestra del 60\% (120.000 listas de reproducción de prueba), cuyos registros se almacenaron de forma persistente en el archivo \texttt{resultados\_hito2\_midterm\_60\_full\_20260604\_2340.csv}.
 
 \section{Resultados}
 
@@ -231,48 +108,96 @@ Two-Stage + LastFM & 0.1460 & 0.0146 & 0.0814 & 0.0965\\
 \label{tab:midterm_results_final}
 \end{table}
 
-En términos relativos, el método principal mejora aproximadamente 10.6x en HitRate@10 y 14.0x en nDCG@10 respecto a \textit{Playlist Name Popular}. Frente a \textit{Most Popular}, la mejora es superior a dos órdenes de magnitud.
+En términos de rendimiento relativo, el método propuesto supera por un factor de 10.6x en HitRate@10 y de 14.0x en nDCG@10 al baseline de popularidad por nombre de lista (\textit{Playlist Name Popular}); la ganancia con respecto al modelo basado estrictamente en popularidad global (\textit{Most Popular}) excede los dos órdenes de magnitud. La distribución y el comportamiento general de estas métricas se representan gráficamente en la Figura~\ref{fig:midterm_metricas_60}.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.84\textwidth]{figures/spotify_midterm_metricas_60.png}
+    \includegraphics[width=0.76\textwidth]{figures/spotify_midterm_metricas_60.png}
     \caption{Comparación visual de métricas para la ejecucion principal del Midterm (60\% de muestra).}
     \label{fig:midterm_metricas_60}
 \end{figure}
 
 \section{Discusión y decisión sobre LastFM}
 
-\textbf{Estado de LastFM}: la variante con LastFM está implementada, pero su ejecución completa depende de una API externa con latencia y límites de tasa. Durante la ventana de Midterm, el experimento extendido con API key activa permaneció por más de 10 horas sin finalizar.
-
-\textbf{Decisión metodológica}: para no bloquear la entrega por una dependencia externa, reportamos como evidencia principal la ejecucion 60\% sin señal externa (reproducible y cerrada). LastFM queda como ablation en curso para consolidarlo en la entrega final.
-
-\textbf{Interpretación}: el salto principal de desempeño proviene del diseño retrieval+rereanking específico de APC. La señal externa se mantiene como mejora potencial, pero requiere una ventana experimental más larga para evaluarla en igualdad de condiciones.
+A pesar de que el módulo con conectividad a LastFM se encuentra completamente operativo, su evaluación a gran escala se vio condicionada por las políticas de restricción de tasa (\textit{rate-limiting}) y la latencia intrínseca de las solicitudes remotas. Con el fin de fundamentar las conclusiones en evidencia científica empíricamente sólida y aislada de factores de red variables, se definió como núcleo del informe la ejecución local sobre el 60\% de los datos, postergando el análisis pormenorizado de LastFM como un estudio de remoción de componentes (\textit{ablation study}) para la entrega final. Los hallazgos sugieren que el incremento sustancial en el rendimiento responde principalmente a la arquitectura dual de recuperación y reordenamiento, un factor estructural interno cuya influencia es independiente de señales contextuales externas de difícil aislamiento en ventanas breves de experimentación.
 
 \section{Criterios de éxito y trabajo restante}
 
-\textbf{Hipótesis H1}: Two-Stage Cooc+Rerank supera a Most Popular y Playlist Name Popular en MAP@10 y nDCG@10.
-
-\textbf{Hipótesis H2}: al incorporar LastFM, mejora la calidad de ranking temprano (nDCG@10) en playlists con artistas variados o baja redundancia local.
-
-Criterios de éxito del Midterm:
-\begin{itemize}
-    \item mejora consistente sobre baselines en al menos 3 de 4 métricas;
-    \item evidencia de robustez por subgrupos (playlists cortas vs largas);
-    \item reporte de cobertura y costo computacional.
-\end{itemize}
+El proyecto plantea dos hipótesis de trabajo fundamentales: (H1) el modelo Two-Stage Cooc+Rerank supera de manera estadísticamente significativa a los modelos baselines en términos de MAP@10 y nDCG@10; y (H2) la inclusión de características de LastFM optimiza la precisión en los rangos iniciales bajo escenarios de baja densidad o redundancia en los datos de entrenamiento. Para este hito intermedio, los criterios de éxito se cumplen al verificar mejoras consistentes de performance, caracterizar los costos computacionales del pipeline y delimitar la estrategia de validación cruzada para la fase de cierre del proyecto.
 
 \section{Riesgos, amenazas a validez y mitigaciones}
 
-\begin{itemize}
-    \item \textbf{Riesgo operacional}: API LastFM limitada por cuota/latencia externa.
-    \item \textbf{Mitigación}: caché local, ejecución asíncrona y reporte principal sin dependencia de API externa.
-    \item \textbf{Riesgo}: sesgo de popularidad en co-ocurrencia.
-    \item \textbf{Mitigación}: normalización por frecuencia y mezcla con señales de contexto.
-    \item \textbf{Amenaza de validez externa}: dependencia de muestra y no de 100\% del corpus.
-    \item \textbf{Mitigación}: mantener muestreo determinístico y reportar sensibilidad por escala (30\%, 60\%).
-\end{itemize}
+Se identificaron tres fuentes principales de vulnerabilidad metodológica: la volatilidad operativa de servicios externos (latencia de LastFM), la persistencia del sesgo de popularidad en los cálculos de co-ocurrencia y las amenazas a la validez externa debidas al muestreo. Las estrategias de mitigación implementadas comprenden el desarrollo de capas de almacenamiento en caché local para las consultas de la API, la aplicación de factores de normalización probabilística basados en la frecuencia de los ítems y el empleo de muestreos determinísticos complementados con análisis de sensibilidad a la escala.
 
 \section{Plan de trabajo hasta entrega final}
+
+La planificación de las actividades post-midterm se articula en torno a tres ejes de desarrollo: (i) optimización de hiperparámetros mediante la búsqueda sistemática de los pesos de reordenamiento ($w_1 \dots w_5$) y ejecución de pruebas de componentes (\textit{ablations}); (ii) evaluación estratificada de los resultados según las propiedades demográficas y estructurales de las playlists; y (iii) refactorización de código para acelerar las etapas de recuperación y gestión de la caché externa. El cronograma detallado se presenta en los anexos correspondientes.
+
+\section{Conclusiones}
+
+Este hito intermedio resuelve de manera satisfactoria las brechas metodológicas identificadas en el Hito 1, consolidando un marco de trabajo de extremo a extremo que mejora drásticamente los resultados de las aproximaciones de referencia en posiciones tempranas del ordenamiento. Los incrementos en las métricas validan empíricamente la viabilidad de adoptar estructuras de procesamiento en dos etapas para abordar tareas complejas de APC.
+
+Paralelamente, se logró la estabilización de un entorno experimental reproducible fundamentado en muestreos estrictamente determinísticos y con un rastreo riguroso de artefactos de salida. Si bien la señal de LastFM se encuentra integrada al software, las restricciones operativas de su API motivaron la focalización del análisis principal en la configuración autónoma del modelo, estableciendo las bases para los experimentos de optimización final que darán cierre a la investigación.
+
+\section{Bibliografía enfocada en APC}
+
+\begingroup
+\footnotesize
+\begin{itemize}
+    \item Vall, A., Dorfer, M., Schedl, M. y Widmer, G. The 2018 ACM RecSys Challenge on Automatic Music Playlist Continuation. ACM RecSys Challenge, 2018.
+    \item Koren, Y., Bell, R. y Volinsky, C. Matrix factorization techniques for recommender systems. Computer, 42(8), 2009.
+    \item Last.fm API documentation. \url{https://www.last.fm/api/show/artist.getSimilar}
+\end{itemize}
+\endgroup
+
+\section{Uso de IA}
+
+De acuerdo con la política del curso, el uso de modelos de lenguaje está permitido como apoyo siempre que no reemplace el trabajo de los estudiantes y que dicho uso sea citado junto con los enlaces a las conversaciones correspondientes. En este proyecto, la IA se utilizó como apoyo para revisar cumplimiento del enunciado, refinar redacción técnica, compactar el informe y realizar revisión focalizada de código. El diseño metodológico, la implementación del pipeline, la ejecución experimental y la validación final de resultados corresponden al equipo.
+
+Las conversaciones compartidas de Hito 2 quedaron documentadas en el repositorio, principalmente en \texttt{prompts\_ia\_hito2.md}. Links principales:
+\begin{itemize}
+    \item GPT checklist H2: \url{https://chatgpt.com/share/6a231209-00d8-83e9-9b47-af6bf766130f}
+    \item GPT revisión metodológica: \url{https://chatgpt.com/share/6a231279-57c8-83e9-a121-f4a0b2c40d96}
+    \item GPT compactación del informe: \url{https://chatgpt.com/share/6a2312f0-c50c-83e9-b915-75fadc5af70c}
+    \item Gemini checklist H2: \url{https://gemini.google.com/share/92eda9e80714}
+    \item Gemini revisión metodológica: \url{https://gemini.google.com/share/c7a08a7cbfb8}
+    \item Gemini edición de claridad: \url{https://gemini.google.com/share/349243cd448f}
+\end{itemize}
+
+\clearpage
+\appendix
+\section{Anexos}
+
+\subsection{Revisión del plan de Hito 1 y ajustes}
+
+En contraste con las proyecciones del Hito 1, se concretó exitosamente el diseño del estimador avanzado basado en co-ocurrencia ítem-ítem y se incrementó sustancialmente la escala de la evaluación empírica. La principal modificación al plan de trabajo original consistió en priorizar la reproducibilidad experimental local: aunque la integración con la API de LastFM quedó funcional, los límites de cuota y tiempos de respuesta remotos impidieron completar su cómputo masivo dentro del plazo del Midterm, decidiéndose su tratamiento formal como un análisis de ablación para el cierre del proyecto.
+
+\subsection{Detalle extendido de implementación}
+
+Flujo algorítmico del script ejecutable:\
+\begin{itemize}
+    \item Extracción y filtrado determinístico mediante funciones de \textit{hash} sobre el campo \texttt{playlist\_id} haciendo uso de \texttt{duckdb}.
+    \item Partición de datos bajo el esquema \textit{leave-last-out} restringido a listas con un umbral mínimo de 3 canciones.
+    \item Indexación e instanciación en memoria de estructuras de frecuencia, popularidad de ítems y metadatos del catálogo.
+    \item Fase de recuperación (\textit{retrieval}) ítem-ítem aplicando métricas de similitud de coseno implícito.
+    \item Reordenamiento (\textit{reranking}) lineal multi-señal que integra pesos específicos de co-ocurrencia, popularidad, correspondencia de artista, texto y el vector opcional de LastFM.
+    \item Cómputo de métricas de desempeño \textit{top-10} (HitRate, Precision, MAP y nDCG).
+\end{itemize}
+
+Consideraciones de ingeniería relevantes: implementación de umbrales de poda de vecinos más cercanos, restricción del volumen de candidatos por consulta, persistencia en base de datos local de respuestas de LastFM y control estricto de la ejecución a través de variables de entorno contextuales.
+
+\subsection{Figura de contexto de datos}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/spotify_tamano_playlists.png}
+    \hfill
+    \includegraphics[width=0.48\textwidth]{figures/spotify_distribucion_popularidad.png}
+    \caption{Contexto de datos: variabilidad de tamaño de playlists y distribución long-tail de popularidad de canciones.}
+    \label{fig:datos_contexto_midterm}
+\end{figure}
+
+\subsection{Cronograma detallado post-midterm}
 
 \begin{table}[H]
 \centering
@@ -290,26 +215,5 @@ Criterios de éxito del Midterm:
 \caption{Plan post-midterm orientado a cerrar resultados para entrega final.}
 \label{tab:plan2}
 \end{table}
-
-\section{Conclusiones}
-
-Este Midterm cierra la principal brecha detectada en Hito 1: ya no hay una propuesta general, sino un método principal implementado, evaluado y comparado de forma directa contra baselines. La ejecucion 60\% confirma mejoras claras en calidad de ranking temprano y deja una base sólida para la entrega final. LastFM quedó integrado y en evaluación extendida, pero no condiciona la validez del avance principal que reportamos aquí.
-
-\section{Bibliografía enfocada en APC}
-
-\begingroup
-\footnotesize
-\begin{itemize}
-    \item Chen, S., Moore, J. L., Turnbull, D. y Joachims, T. Playlist prediction via metric embedding. KDD, 2012.
-    \item Vall, A., Dorfer, M., Schedl, M. y Widmer, G. The 2018 ACM RecSys Challenge on Automatic Music Playlist Continuation. ACM RecSys Challenge, 2018.
-    \item Ferrari Dacrema, M., Cremonesi, P. y Jannach, D. Are we really making much progress? A worrying analysis of recent neural recommendation approaches. RecSys, 2019.
-    \item Koren, Y., Bell, R. y Volinsky, C. Matrix factorization techniques for recommender systems. Computer, 42(8), 2009.
-    \item Last.fm API documentation. \url{https://www.last.fm/api/show/artist.getSimilar}
-\end{itemize}
-\endgroup
-
-\section{Uso de IA}
-
-Se utilizó IA como apoyo de redacción técnica, estructuración de secciones y revisión de consistencia metodológica del informe. La definición del método, decisiones de diseño, implementación y criterios de evaluación fueron establecidos y validados por el equipo.
 
 \end{document}

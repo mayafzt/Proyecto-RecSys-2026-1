@@ -104,11 +104,25 @@ Para el informe Midterm, subir `Informe_Hito_2_Midterm_Overleaf.tex` junto con l
 
 ## Uso de IA
 
-Se utilizo IA generativa como apoyo para estructurar el informe, revisar cumplimiento del enunciado, depurar/verificar codigo, justificar el uso de DuckDB y preparar el formato LaTeX. Las decisiones metodologicas, seleccion del dataset, interpretacion de resultados y validacion final son responsabilidad del grupo.
+De acuerdo con la politica del curso, se permite el uso de modelos de lenguaje como apoyo en el desarrollo de las evaluaciones, siempre que no reemplacen el trabajo de los estudiantes y que su uso sea citado junto con los enlaces a las conversaciones correspondientes.
 
-Las conversaciones compartidas y prompts sinteticos estan documentados en `prompts_ia_hito1.md`. URLs principales:
+En este proyecto, la IA se uso como apoyo para revisar cumplimiento del enunciado, mejorar redaccion tecnica y realizar revision focalizada de codigo. Las decisiones metodologicas, la implementacion del pipeline, la ejecucion experimental y la validacion final de resultados fueron realizadas por el equipo.
 
-- Revision del enunciado y checklist: https://chatgpt.com/share/69fe7497-b264-83e9-af99-d39056a4bdc1
-- Actualizacion al dataset Spotify: https://chatgpt.com/share/69fe757d-a82c-83e9-ba6e-c106809575d2
-- Procesamiento eficiente del CSV y figuras: https://chatgpt.com/share/69fe74e5-c4d0-83e9-911f-0ecdaddd7898
-- Implementacion y verificacion de baselines: https://chatgpt.com/share/69fe7523-8ac0-83e9-a7c6-0a46f9c092a0
+Documentacion de prompts:
+
+- Hito 1: `prompts_ia_hito1.md`
+- Hito 2: `prompts_ia_hito2.md`
+
+Links compartidos (Hito 2):
+
+- GPT - checklist de cumplimiento H2: https://chatgpt.com/share/6a231209-00d8-83e9-9b47-af6bf766130f
+- GPT - revision metodologica APC: https://chatgpt.com/share/6a231279-57c8-83e9-a121-f4a0b2c40d96
+- GPT - apoyo redaccion/compactacion: https://chatgpt.com/share/6a2312f0-c50c-83e9-b915-75fadc5af70c
+- Gemini - checklist de cumplimiento H2: https://gemini.google.com/share/92eda9e80714
+- Gemini - revision metodologica APC: https://gemini.google.com/share/c7a08a7cbfb8
+- Gemini - apoyo redaccion/compactacion: https://gemini.google.com/share/349243cd448f
+
+Links compartidos (Hito 2, revision parcial de codigo):
+
+- GPT - revision de funciones claves: https://chatgpt.com/share/6a231747-8fe4-83e9-ab2d-b75b42c7c85c
+- Gemini - code review focalizado: https://gemini.google.com/share/6c68fb1a7981

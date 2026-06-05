@@ -38,10 +38,12 @@ W_NAME = 0.10
 W_LASTFM = 0.10
 
 
+# Simple timestamped logger for long-running experiment steps.
 def log(message: str) -> None:
     print(f"[{time.strftime('%H:%M:%S')}] {message}", flush=True)
 
 
+# Normalize free text into a compact token set used by name-based features.
 def tokenize(text: str) -> set[str]:
     tokens = re.findall(r"[a-z0-9]+", str(text).lower())
     stop = {
@@ -66,14 +68,17 @@ def tokenize(text: str) -> set[str]:
     return {token for token in tokens if len(token) > 2 and token not in stop}
 
 
+# HitRate is 1 when the held-out item appears inside the top-k list.
 def hit_rate_at_k(recommended: list[str], relevant: str, k: int) -> float:
     return float(relevant in recommended[:k])
 
 
+# With one relevant item per playlist, Precision@k is either 0 or 1/k.
 def precision_at_k(recommended: list[str], relevant: str, k: int) -> float:
     return float(relevant in recommended[:k]) / k
 
 
+# Average precision collapses to the inverse rank of the held-out item.
 def average_precision_at_k(recommended: list[str], relevant: str, k: int) -> float:
     for rank, item in enumerate(recommended[:k], start=1):
         if item == relevant:
@@ -81,6 +86,7 @@ def average_precision_at_k(recommended: list[str], relevant: str, k: int) -> flo
     return 0.0
 
 
+# nDCG rewards placing the held-out item as high as possible in the list.
 def ndcg_at_k(recommended: list[str], relevant: str, k: int) -> float:
     for rank, item in enumerate(recommended[:k], start=1):
         if item == relevant:
@@ -88,6 +94,7 @@ def ndcg_at_k(recommended: list[str], relevant: str, k: int) -> float:
     return 0.0
 
 
+# Base DuckDB relation used to scan the raw CSV with normalized column names.
 def base_relation() -> str:
     return f"""
     read_csv(
@@ -100,10 +107,11 @@ def base_relation() -> str:
     """
 
 
+# Build the deterministic playlist sample used in the midterm experiments.
 def load_playlist_sample(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
-        log(f"Cargando muestra deterministica del {SAMPLE_PERCENT}% por playlist")
-        if MAX_SAMPLE_PLAYLISTS > 0:
-                query = f"""
+    log(f"Cargando muestra deterministica del {SAMPLE_PERCENT}% por playlist")
+    if MAX_SAMPLE_PLAYLISTS > 0:
+            query = f"""
                 WITH data AS (
                     SELECT
                         playlistname,
@@ -131,8 +139,8 @@ def load_playlist_sample(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
                 FROM sampled s
                 JOIN keep_playlists k USING (playlist_id)
                 """
-        else:
-                query = f"""
+    else:
+            query = f"""
                 WITH data AS (
                     SELECT
                         playlistname,
@@ -148,9 +156,10 @@ def load_playlist_sample(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
                 FROM data
                 WHERE hash(playlist_id) % 100 < {SAMPLE_PERCENT}
                 """
-        return con.execute(query).fetchdf()
+    return con.execute(query).fetchdf()
 
 
+# Split each playlist into context items and one held-out target song.
 def build_split(
     df: pd.DataFrame,
 ) -> tuple[list[list[str]], list[str], list[str], dict[str, tuple[str, str]]]:
@@ -178,6 +187,7 @@ def build_split(
     return train_playlists, test_items, playlist_names, item_meta
 
 
+# Random baseline used as a lower bound for recommendation quality.
 def recommend_random(catalog: list[str], seen: set[str], rng: random.Random) -> list[str]:
     recommendations: list[str] = []
     used = set(seen)
@@ -192,6 +202,7 @@ def recommend_random(catalog: list[str], seen: set[str], rng: random.Random) -> 
     return recommendations
 
 
+# Global popularity baseline with seen-item filtering.
 def recommend_most_popular(popular_items: list[str], seen: set[str]) -> list[str]:
     recommendations = []
     for item in popular_items:
@@ -202,6 +213,7 @@ def recommend_most_popular(popular_items: list[str], seen: set[str]) -> list[str
     return recommendations
 
 
+# Baseline that backs off to items associated with playlist-name tokens.
 def recommend_playlist_name(
     playlist_name: str,
     token_to_items: dict[str, list[str]],
@@ -225,6 +237,7 @@ def recommend_playlist_name(
     return recommendations
 
 
+# Build item frequencies and truncated cosine-normalized item neighbors.
 def build_cooccurrence(
     train_playlists: list[list[str]],
 ) -> tuple[Counter[str], dict[str, Counter[str]], dict[str, list[tuple[str, float]]]]:
@@ -258,6 +271,7 @@ def build_cooccurrence(
     return item_counts, pair_counts, neighbors
 
 
+# Lightweight wrapper around LastFM artist similarity with local caching.
 class LastFMSimilarity:
     def __init__(self, api_key: str | None, timeout_s: int = 3) -> None:
         self.api_key = api_key or ""
@@ -265,6 +279,7 @@ class LastFMSimilarity:
         self.cache: dict[tuple[str, str], float] = {}
         self.enabled = bool(self.api_key)
 
+    # Query LastFM once per artist pair and reuse cached similarities afterwards.
     def artist_similarity(self, a: str, b: str) -> float:
         if not self.enabled:
             return 0.0
@@ -301,6 +316,7 @@ class LastFMSimilarity:
 
 @dataclass
 class TwoStageArtifacts:
+    # Shared structures reused across all recommenders during evaluation.
     item_counts: Counter[str]
     neighbors: dict[str, list[tuple[str, float]]]
     item_meta: dict[str, tuple[str, str]]
@@ -309,6 +325,7 @@ class TwoStageArtifacts:
     lastfm: LastFMSimilarity
 
 
+# Retrieve a bounded candidate set by aggregating neighbors of context items.
 def retrieve_candidates(
     context_items: list[str],
     neighbors: dict[str, list[tuple[str, float]]],
@@ -329,6 +346,7 @@ def retrieve_candidates(
     return candidate_scores
 
 
+# Combine retrieval, popularity, artist, name and optional LastFM signals.
 def rerank_candidates(
     playlist_name: str,
     context_items: list[str],
@@ -386,6 +404,7 @@ def rerank_candidates(
     return ranked
 
 
+# Main APC recommender: retrieve candidates first, then rerank them.
 def recommend_two_stage(
     playlist_name: str,
     context_items: list[str],
@@ -407,6 +426,7 @@ def recommend_two_stage(
     )
 
 
+# Evaluate all baselines and two-stage variants on the same held-out split.
 def evaluate(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, object]]:
     train_playlists, test_items, playlist_names, item_meta = build_split(df)
     log(f"Evaluando {len(test_items):,} playlists")
@@ -470,6 +490,7 @@ def evaluate(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, object]]:
     return pd.DataFrame(rows), eval_stats
 
 
+# Persist the metric table both as CSV and as a short Markdown summary.
 def write_report(results: pd.DataFrame, eval_stats: dict[str, object]) -> None:
     results.to_csv(RESULT_CSV, index=False)
 
@@ -507,6 +528,7 @@ def write_report(results: pd.DataFrame, eval_stats: dict[str, object]) -> None:
     RESULT_MD.write_text(report, encoding="utf-8")
 
 
+# Entry point that runs sampling, evaluation and artifact generation end to end.
 def main() -> None:
     start = time.time()
     log(
