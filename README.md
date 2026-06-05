@@ -7,14 +7,20 @@ Marzo-Julio 2026
 
 Este repositorio contiene el avance del Hito 1 del proyecto: recomendacion musical personalizada usando playlists de Spotify.
 
+Ademas, incluye el avance de Hito 2 (midterm): enfoque de dos etapas para Automatic Playlist Continuation con enriquecimiento opcional desde LastFM.
+
 ## Archivos principales
 
 - `Informe_Hito_1_Overleaf.tex`: informe en LaTeX listo para compilar en Overleaf.
+- `Informe_Hito_2_Midterm_Overleaf.tex`: informe Midterm (Hito 2) en LaTeX, con metodologia especifica retrieval + reranking.
 - `Hito_1_Propuesta.md`: version Markdown de la propuesta.
 - `Hito_1_Spotify.ipynb`: notebook ejecutado del pipeline final con Spotify Playlists.
 - `hito1_spotify_baselines.py`: script reproducible con EDA, muestra del 30%, baselines y figuras.
+- `hito2_spotify_lastfm_midterm.py`: script de Midterm con metodo principal two-stage (co-ocurrencia + reranking) y senal LastFM opcional.
 - `resultados_hito1_spotify.md`: resumen de resultados generado por el script.
 - `resultados_hito1_spotify.csv`: tabla de metricas exportada.
+- `resultados_hito2_midterm.md`: resumen de resultados del pipeline de Midterm.
+- `resultados_hito2_midterm.csv`: tabla de metricas del pipeline de Midterm.
 - `figures/`: figuras usadas por el informe LaTeX.
 - `prompts_ia_hito1.md`: resumen de prompts usados para documentar apoyo de IA.
 - `requirements.txt`: dependencias Python usadas por el pipeline.
@@ -71,6 +77,19 @@ python -m pip install -r requirements.txt
 python hito1_spotify_baselines.py
 ```
 
+Para Midterm (Hito 2):
+
+```powershell
+python hito2_spotify_lastfm_midterm.py
+```
+
+Opcional: activar enriquecimiento LastFM configurando API key en el entorno antes de ejecutar:
+
+```powershell
+$env:LASTFM_API_KEY="TU_API_KEY"
+python hito2_spotify_lastfm_midterm.py
+```
+
 5. Revisar:
 
 ```text
@@ -80,6 +99,8 @@ figures/
 ```
 
 Para compilar el informe en Overleaf, subir `Informe_Hito_1_Overleaf.tex` junto con la carpeta `figures/`.
+
+Para el informe Midterm, subir `Informe_Hito_2_Midterm_Overleaf.tex` junto con los archivos de resultados que se quieran citar en el documento.
 
 ## Uso de IA
 
