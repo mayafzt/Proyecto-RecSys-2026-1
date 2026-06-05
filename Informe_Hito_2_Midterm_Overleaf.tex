@@ -42,7 +42,7 @@
 
 \section{Resumen ejecutivo}
 
-En este Midterm dejamos cerrada una versión concreta del sistema APC y respondemos de forma explícita al feedback del Hito 1. La propuesta principal quedó definida como un pipeline de \textbf{dos etapas}: (i) \textit{candidate retrieval} por co-ocurrencia canción-canción y (ii) \textit{reranking} con señales de popularidad, coincidencia de artista, texto de playlist y similitud externa vía LastFM.
+En este Midterm dejamos cerrada una versión concreta del sistema para \textit{Automatic Playlist Continuation} (APC). En este contexto, APC significa: dada una playlist parcial, recomendar canciones para completarla priorizando la calidad de los primeros resultados del ranking. La propuesta principal quedó definida como un pipeline de \textbf{dos etapas}: (i) \textit{candidate retrieval} por co-ocurrencia canción-canción y (ii) \textit{reranking} con señales de popularidad, coincidencia de artista, texto de playlist y similitud externa vía LastFM.
 
 En la corrida principal (muestra determinística de 60\% y 120.000 playlists evaluadas), \textbf{Two-Stage Cooc+Rerank} supera con margen amplio a los baselines: HitRate@10 = 0.1460 y nDCG@10 = 0.0965, versus 0.0138 y 0.0069 de \textit{Playlist Name Popular}, respectivamente.
 
@@ -50,7 +50,9 @@ La integración de LastFM quedó implementada y funcional en código, pero su ev
 
 \section{Introducción}
 
-El problema de APC busca recomendar canciones relevantes dado el contexto parcial de una playlist. Este escenario corresponde a feedback implícito y ranking top-$N$, donde importa especialmente la calidad de los primeros resultados (ranking temprano).
+El problema de APC busca recomendar canciones relevantes dado el contexto parcial de una playlist. En términos operativos, la entrada es una playlist con algunas canciones semilla y la salida es un ranking top-$N$ de canciones candidatas no vistas en esa playlist. Este escenario corresponde a feedback implícito, donde la presencia de una canción en una playlist se interpreta como señal positiva.
+
+En nuestro protocolo, el objetivo es predecir una canción oculta por playlist con evaluación top-10 (HitRate@10, Precision@10, MAP@10 y nDCG@10). Esto permite medir tanto acierto como calidad de ordenamiento en las primeras posiciones.
 
 En Hito 1 validamos la factibilidad del problema y construimos baselines iniciales. En este Midterm damos el paso que faltaba: fijar un método principal de dominio, justificar sus señales y compararlo contra baselines concretos con un protocolo reproducible.
 
