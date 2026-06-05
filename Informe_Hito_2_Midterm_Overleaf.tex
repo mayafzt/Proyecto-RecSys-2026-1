@@ -136,22 +136,51 @@ Pesos iniciales para Midterm: $(w_1,w_2,w_3,w_4,w_5)=(0.55, 0.15, 0.10, 0.10, 0.
 
 \section{Implementación}
 
-Se implementó un pipeline reproducible en \texttt{hito2\_spotify\_lastfm\_midterm.py} con:
+Se implementó un pipeline reproducible en \texttt{hito2\_spotify\_lastfm\_midterm.py}. El objetivo de esta sección es dejar claro \textit{cómo} se computan las recomendaciones en la práctica y qué decisiones de ingeniería afectan directamente los resultados.
+
+\subsection{8.1 Flujo del algoritmo en código}
+
+El flujo ejecutado por el script es el siguiente:
 \begin{itemize}
-    \item Split \textit{leave-last-out} por playlist (mínimo 3 canciones).
-    \item Baselines heredados: Random, Most Popular, Playlist Name Popular.
-    \item Método principal: Two-Stage Cooc+Rerank.
-    \item Variante enriquecida: Two-Stage + LastFM (activa si existe \texttt{LASTFM\_API\_KEY}).
-    \item Export de resultados versionados por corrida mediante prefijo.
+    \item \textbf{Paso 1: muestreo determinístico}. Se filtran playlists por hash de \texttt{playlist\_id} para obtener una muestra reproducible (porcentaje configurable). La lectura y filtrado se hace con \texttt{duckdb} sobre el CSV sin cargar todo inicialmente en memoria.
+    \item \textbf{Paso 2: split de evaluación}. Para cada playlist con al menos 3 canciones se aplica \textit{leave-last-out}: la última canción queda como objetivo de test y las anteriores como contexto.
+    \item \textbf{Paso 3: índices y estadísticas}. Se construyen conteos de frecuencia por canción, popularidad global y estructuras auxiliares (metadatos artista-canción, tokens de nombre de playlist).
+    \item \textbf{Paso 4: retrieval por co-ocurrencia}. Se calcula matriz dispersa canción-canción a nivel de playlists y vecindarios normalizados por coseno implícito.
+    \item \textbf{Paso 5: reranking}. Para cada playlist se combinan señales (co-ocurrencia, popularidad, artista, texto y LastFM opcional) y se produce top-10 final.
+    \item \textbf{Paso 6: evaluación}. Se calculan HitRate@10, Precision@10, MAP@10 y nDCG@10 para todos los modelos comparados.
 \end{itemize}
 
-Además, dejamos parametrizada la ejecución para escalar por porcentaje de muestra y por cantidad máxima de playlists evaluadas, de modo de poder correr experimentos comparables en máquinas con distinto presupuesto de memoria.
+\subsection{8.2 Construcción de candidatos (retrieval)}
 
-\subsection{Detalles de implementación reproducible}
+La co-ocurrencia se construye recorriendo playlists de entrenamiento y contando pares de canciones dentro de cada playlist. Para controlar costo y memoria, en cada playlist se limita el número de canciones consideradas en esta etapa (tope en código) y luego se guarda solo un número acotado de vecinos por canción.
 
-La implementación se realizó en Python, con \texttt{duckdb} para lectura/filtrado eficiente del CSV a gran escala, \texttt{pandas} para manipulación tabular y cálculo de métricas, y \texttt{matplotlib} para visualización de resultados. En la integración de LastFM se usó \texttt{urllib} para llamadas HTTP y caché en memoria para pares de artistas ya consultados.
+Para una playlist consulta, el conjunto de candidatos se obtiene agregando los vecinos de todas las canciones semilla, ponderados por similitud y posición de vecino. También se aplica un tope de candidatos por playlist para mantener tiempo de inferencia estable.
 
-En términos de estructura, el pipeline se apoya en cinco bloques: (i) muestreo determinístico por hash de playlist, (ii) split \textit{leave-last-out}, (iii) construcción de co-ocurrencias item-item, (iv) reranking por combinación lineal de señales y (v) evaluación top-$K$ con HitRate@10, Precision@10, MAP@10 y nDCG@10. Esta separación permitió iterar la escala de evaluación (30\% y 60\%) sin cambiar el protocolo ni las métricas de comparación.
+Esta parte explica por qué el método escala razonablemente en 60\% de muestra: evitamos estructuras densas globales y trabajamos con vecinos truncados.
+
+\subsection{8.3 Reranking y uso de señales}
+
+El reranking usa un score lineal sobre candidatos recuperados:
+
+\begin{itemize}
+    \item \textbf{Co-ocurrencia normalizada}: señal principal del método.
+    \item \textbf{Popularidad global}: respaldo para evitar listas vacías y mejorar robustez.
+    \item \textbf{Coincidencia de artista}: prioriza continuidad musical de la playlist.
+    \item \textbf{Texto del nombre de playlist}: introduce contexto semántico simple (tokens).
+    \item \textbf{LastFM}: similitud externa de artistas cuando hay API key activa.
+\end{itemize}
+
+Los pesos iniciales usados en Midterm se fijaron explícitamente en el código $(0.55, 0.15, 0.10, 0.10, 0.10)$ y se mantuvieron constantes en las corridas reportadas, para no mezclar mejora de arquitectura con ajuste de hiperparámetros.
+
+\subsection{8.4 Librerías y decisiones de ingeniería}
+
+Se usó \texttt{duckdb} para I/O y filtrado de CSV grande, \texttt{pandas} para estructuras tabulares y evaluación, \texttt{matplotlib} para figuras y \texttt{urllib} para consultas LastFM. En la variante LastFM se añadió caché en memoria para pares de artistas ya consultados, reduciendo llamadas repetidas.
+
+El script quedó parametrizado por variables de entorno (porcentaje de muestra, topes de playlists, prefijo de salida), lo que permitió correr experimentos comparables en hardware distinto sin alterar el código base.
+
+\subsection{8.5 Complejidad práctica y tiempos observados}
+
+En práctica, el tiempo total queda dominado por dos partes: (i) construcción de co-ocurrencia y (ii) evaluación del método two-stage sobre todas las playlists de test. En corridas con LastFM activo, el cuello de botella pasa a ser red/API externa. Por eso se decidió reportar como principal la corrida cerrada y reproducible (60\%) y dejar LastFM como ablation extendida.
 
 \section{Diseño experimental}
 
