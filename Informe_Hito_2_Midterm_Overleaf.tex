@@ -44,7 +44,7 @@
 
 En este Midterm dejamos cerrada una versión concreta del sistema para \textit{Automatic Playlist Continuation} (APC). En este contexto, APC significa: dada una playlist parcial, recomendar canciones para completarla priorizando la calidad de los primeros resultados del ranking. La propuesta principal quedó definida como un pipeline de \textbf{dos etapas}: (i) \textit{candidate retrieval} por co-ocurrencia canción-canción y (ii) \textit{reranking} con señales de popularidad, coincidencia de artista, texto de playlist y similitud externa vía LastFM.
 
-En la corrida principal (muestra determinística de 60\% y 120.000 playlists evaluadas), \textbf{Two-Stage Cooc+Rerank} supera con margen amplio a los baselines: HitRate@10 = 0.1460 y nDCG@10 = 0.0965, versus 0.0138 y 0.0069 de \textit{Playlist Name Popular}, respectivamente.
+En la ejecucion principal (muestra determinística de 60\% y 120.000 playlists evaluadas), \textbf{Two-Stage Cooc+Rerank} supera con margen amplio a los baselines: HitRate@10 = 0.1460 y nDCG@10 = 0.0965, versus 0.0138 y 0.0069 de \textit{Playlist Name Popular}, respectivamente.
 
 La integración de LastFM quedó implementada y funcional en código, pero su evaluación completa depende de latencia y límites de una API externa. Para no amarrar la entrega a ese factor, tomamos como resultado principal la variante reproducible sin señal externa y dejamos LastFM como ablation en curso para la entrega final.
 
@@ -170,7 +170,7 @@ El reranking usa un score lineal sobre candidatos recuperados:
     \item \textbf{LastFM}: similitud externa de artistas cuando hay API key activa.
 \end{itemize}
 
-Los pesos iniciales usados en Midterm se fijaron explícitamente en el código $(0.55, 0.15, 0.10, 0.10, 0.10)$ y se mantuvieron constantes en las corridas reportadas, para no mezclar mejora de arquitectura con ajuste de hiperparámetros.
+Los pesos iniciales usados en Midterm se fijaron explícitamente en el código $(0.55, 0.15, 0.10, 0.10, 0.10)$ y se mantuvieron constantes en las ejecuciones reportadas, para no mezclar mejora de arquitectura con ajuste de hiperparámetros.
 
 \subsection{8.4 Librerías y decisiones de ingeniería}
 
@@ -180,7 +180,7 @@ El script quedó parametrizado por variables de entorno (porcentaje de muestra, 
 
 \subsection{8.5 Complejidad práctica y tiempos observados}
 
-En práctica, el tiempo total queda dominado por dos partes: (i) construcción de co-ocurrencia y (ii) evaluación del método two-stage sobre todas las playlists de test. En corridas con LastFM activo, el cuello de botella pasa a ser red/API externa. Por eso se decidió reportar como principal la corrida cerrada y reproducible (60\%) y dejar LastFM como ablation extendida.
+En práctica, el tiempo total queda dominado por dos partes: (i) construcción de co-ocurrencia y (ii) evaluación del método two-stage sobre todas las playlists de test. En ejecuciones con LastFM activo, el cuello de botella pasa a ser red/API externa. Por eso se decidió reportar como principal la ejecucion cerrada y reproducible (60\%) y dejar LastFM como ablation extendida.
 
 \section{Diseño experimental}
 
@@ -204,7 +204,7 @@ Modelos comparados:
 
 \subsection{Configuración principal reportada}
 
-La corrida principal del Midterm usa:
+La ejecucion principal del Midterm usa:
 \begin{itemize}
     \item muestra determinística: 60\% de playlists;
     \item playlists evaluadas: 120.000;
@@ -227,7 +227,7 @@ Two-Stage Cooc+Rerank & 0.1460 & 0.0146 & 0.0814 & 0.0965\\
 Two-Stage + LastFM & 0.1460 & 0.0146 & 0.0814 & 0.0965\\
 \bottomrule
 \end{tabular}
-\caption{Resultados del Midterm sobre la corrida principal (60\%).}
+\caption{Resultados del Midterm sobre la ejecucion principal (60\%).}
 \label{tab:midterm_results_final}
 \end{table}
 
@@ -236,7 +236,7 @@ En términos relativos, el método principal mejora aproximadamente 10.6x en Hit
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.84\textwidth]{figures/spotify_midterm_metricas_60.png}
-    \caption{Comparación visual de métricas para la corrida principal del Midterm (60\% de muestra).}
+    \caption{Comparación visual de métricas para la ejecucion principal del Midterm (60\% de muestra).}
     \label{fig:midterm_metricas_60}
 \end{figure}
 
@@ -244,7 +244,7 @@ En términos relativos, el método principal mejora aproximadamente 10.6x en Hit
 
 \textbf{Estado de LastFM}: la variante con LastFM está implementada, pero su ejecución completa depende de una API externa con latencia y límites de tasa. Durante la ventana de Midterm, el experimento extendido con API key activa permaneció por más de 10 horas sin finalizar.
 
-\textbf{Decisión metodológica}: para no bloquear la entrega por una dependencia externa, reportamos como evidencia principal la corrida 60\% sin señal externa (reproducible y cerrada). LastFM queda como ablation en curso para consolidarlo en la entrega final.
+\textbf{Decisión metodológica}: para no bloquear la entrega por una dependencia externa, reportamos como evidencia principal la ejecucion 60\% sin señal externa (reproducible y cerrada). LastFM queda como ablation en curso para consolidarlo en la entrega final.
 
 \textbf{Interpretación}: el salto principal de desempeño proviene del diseño retrieval+rereanking específico de APC. La señal externa se mantiene como mejora potencial, pero requiere una ventana experimental más larga para evaluarla en igualdad de condiciones.
 
@@ -293,7 +293,7 @@ Criterios de éxito del Midterm:
 
 \section{Conclusiones}
 
-Este Midterm cierra la principal brecha detectada en Hito 1: ya no hay una propuesta general, sino un método principal implementado, evaluado y comparado de forma directa contra baselines. La corrida 60\% confirma mejoras claras en calidad de ranking temprano y deja una base sólida para la entrega final. LastFM quedó integrado y en evaluación extendida, pero no condiciona la validez del avance principal que reportamos aquí.
+Este Midterm cierra la principal brecha detectada en Hito 1: ya no hay una propuesta general, sino un método principal implementado, evaluado y comparado de forma directa contra baselines. La ejecucion 60\% confirma mejoras claras en calidad de ranking temprano y deja una base sólida para la entrega final. LastFM quedó integrado y en evaluación extendida, pero no condiciona la validez del avance principal que reportamos aquí.
 
 \section{Bibliografía enfocada en APC}
 
