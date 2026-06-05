@@ -15,13 +15,15 @@ import pandas as pd
 
 
 DATA_PATH = Path("data/spotify_dataset.csv")
-RESULT_CSV = Path("resultados_hito2_midterm.csv")
-RESULT_MD = Path("resultados_hito2_midterm.md")
+OUTPUT_PREFIX = os.getenv("MIDTERM_OUTPUT_PREFIX", "resultados_hito2_midterm")
+RESULT_CSV = Path(f"{OUTPUT_PREFIX}.csv")
+RESULT_MD = Path(f"{OUTPUT_PREFIX}.md")
 
-SAMPLE_PERCENT = int(os.getenv("MIDTERM_SAMPLE_PERCENT", "12"))
+SAMPLE_PERCENT = int(os.getenv("MIDTERM_SAMPLE_PERCENT", "30"))
 TOP_K = 10
 RANDOM_SEED = 42
 MAX_EVAL_PLAYLISTS = int(os.getenv("MIDTERM_MAX_EVAL_PLAYLISTS", "20000"))
+MAX_SAMPLE_PLAYLISTS = int(os.getenv("MIDTERM_MAX_SAMPLE_PLAYLISTS", "0"))
 
 # Retrieval + reranking configuration.
 MAX_ITEMS_PER_PLAYLIST_FOR_COOC = 80
@@ -99,29 +101,54 @@ def base_relation() -> str:
 
 
 def load_playlist_sample(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
-    log(f"Cargando muestra deterministica del {SAMPLE_PERCENT}% por playlist")
-    query = f"""
-    WITH data AS (
-      SELECT
-        user_id,
-        artistname,
-        trackname,
-        playlistname,
-        lower(trim(artistname)) || ' - ' || lower(trim(trackname)) AS item_id,
-        lower(trim(artistname)) AS artist_norm,
-        lower(trim(trackname)) AS track_norm,
-        user_id || '||' || playlistname AS playlist_id
-      FROM {base_relation()}
-      WHERE user_id IS NOT NULL
-        AND artistname IS NOT NULL
-        AND trackname IS NOT NULL
-        AND playlistname IS NOT NULL
-    )
-    SELECT *
-    FROM data
-    WHERE hash(playlist_id) % 100 < {SAMPLE_PERCENT}
-    """
-    return con.execute(query).fetchdf()
+        log(f"Cargando muestra deterministica del {SAMPLE_PERCENT}% por playlist")
+        if MAX_SAMPLE_PLAYLISTS > 0:
+                query = f"""
+                WITH data AS (
+                    SELECT
+                        playlistname,
+                        lower(trim(artistname)) || ' - ' || lower(trim(trackname)) AS item_id,
+                        user_id || '||' || playlistname AS playlist_id
+                    FROM {base_relation()}
+                    WHERE user_id IS NOT NULL
+                        AND artistname IS NOT NULL
+                        AND trackname IS NOT NULL
+                        AND playlistname IS NOT NULL
+                ),
+                sampled AS (
+                    SELECT playlistname, item_id, playlist_id
+                    FROM data
+                    WHERE hash(playlist_id) % 100 < {SAMPLE_PERCENT}
+                ),
+                keep_playlists AS (
+                    SELECT playlist_id
+                    FROM sampled
+                    GROUP BY playlist_id
+                    ORDER BY playlist_id
+                    LIMIT {MAX_SAMPLE_PLAYLISTS}
+                )
+                SELECT s.playlistname, s.item_id, s.playlist_id
+                FROM sampled s
+                JOIN keep_playlists k USING (playlist_id)
+                """
+        else:
+                query = f"""
+                WITH data AS (
+                    SELECT
+                        playlistname,
+                        lower(trim(artistname)) || ' - ' || lower(trim(trackname)) AS item_id,
+                        user_id || '||' || playlistname AS playlist_id
+                    FROM {base_relation()}
+                    WHERE user_id IS NOT NULL
+                        AND artistname IS NOT NULL
+                        AND trackname IS NOT NULL
+                        AND playlistname IS NOT NULL
+                )
+                SELECT playlistname, item_id, playlist_id
+                FROM data
+                WHERE hash(playlist_id) % 100 < {SAMPLE_PERCENT}
+                """
+        return con.execute(query).fetchdf()
 
 
 def build_split(
@@ -482,6 +509,13 @@ def write_report(results: pd.DataFrame, eval_stats: dict[str, object]) -> None:
 
 def main() -> None:
     start = time.time()
+    log(
+        "Configuracion -> "
+        f"sample_percent={SAMPLE_PERCENT}, "
+        f"max_sample_playlists={MAX_SAMPLE_PLAYLISTS}, "
+        f"max_eval_playlists={MAX_EVAL_PLAYLISTS}, "
+        f"output_prefix={OUTPUT_PREFIX}"
+    )
     con = duckdb.connect()
     df = load_playlist_sample(con)
     results, eval_stats = evaluate(df)
