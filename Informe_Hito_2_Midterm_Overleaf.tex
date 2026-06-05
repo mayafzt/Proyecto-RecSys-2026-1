@@ -145,6 +145,12 @@ Se implementó un pipeline reproducible en \texttt{hito2\_spotify\_lastfm\_midte
 
 Además, dejamos parametrizada la ejecución para escalar por porcentaje de muestra y por cantidad máxima de playlists evaluadas, de modo de poder correr experimentos comparables en máquinas con distinto presupuesto de memoria.
 
+\subsection{Detalles de implementación reproducible}
+
+La implementación se realizó en Python, con \texttt{duckdb} para lectura/filtrado eficiente del CSV a gran escala, \texttt{pandas} para manipulación tabular y cálculo de métricas, y \texttt{matplotlib} para visualización de resultados. En la integración de LastFM se usó \texttt{urllib} para llamadas HTTP y caché en memoria para pares de artistas ya consultados.
+
+En términos de estructura, el pipeline se apoya en cinco bloques: (i) muestreo determinístico por hash de playlist, (ii) split \textit{leave-last-out}, (iii) construcción de co-ocurrencias item-item, (iv) reranking por combinación lineal de señales y (v) evaluación top-$K$ con HitRate@10, Precision@10, MAP@10 y nDCG@10. Esta separación permitió iterar la escala de evaluación (30\% y 60\%) sin cambiar el protocolo ni las métricas de comparación.
+
 \section{Diseño experimental}
 
 \subsection{Protocolo de evaluación}
