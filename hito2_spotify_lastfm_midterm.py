@@ -18,9 +18,10 @@ DATA_PATH = Path("data/spotify_dataset.csv")
 RESULT_CSV = Path("resultados_hito2_midterm.csv")
 RESULT_MD = Path("resultados_hito2_midterm.md")
 
-SAMPLE_PERCENT = 30
+SAMPLE_PERCENT = int(os.getenv("MIDTERM_SAMPLE_PERCENT", "12"))
 TOP_K = 10
 RANDOM_SEED = 42
+MAX_EVAL_PLAYLISTS = int(os.getenv("MIDTERM_MAX_EVAL_PLAYLISTS", "20000"))
 
 # Retrieval + reranking configuration.
 MAX_ITEMS_PER_PLAYLIST_FOR_COOC = 80
@@ -132,6 +133,8 @@ def build_split(
     )
     grouped["size"] = grouped["item_id"].str.len()
     grouped = grouped[grouped["size"] >= 3]
+    if MAX_EVAL_PLAYLISTS > 0 and len(grouped) > MAX_EVAL_PLAYLISTS:
+        grouped = grouped.iloc[:MAX_EVAL_PLAYLISTS]
 
     train_playlists = [items[:-1] for items in grouped["item_id"]]
     test_items = [items[-1] for items in grouped["item_id"]]
