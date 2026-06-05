@@ -1,9 +1,9 @@
-% Archivo generado automaticamente desde resultados_hito2_midterm.csv
+% Archivo generado automaticamente desde resultados_hito2_midterm_60_full_20260604_2340.csv
 % Inserta con: \input{seccion_resultados_midterm_auto.tex}
 
 \section{Resultados finales Midterm}
 
-Esta seccion resume la corrida seleccionada como principal para entrega, con muestra del 3\% y 3000 playlists evaluadas en protocolo \textit{leave-last-out}.
+Esta seccion resume la corrida seleccionada como principal para entrega, con muestra del 60\% y 120000 playlists evaluadas en protocolo \textit{leave-last-out}.
 
 \begin{table}[H]
 \centering
@@ -13,21 +13,21 @@ Esta seccion resume la corrida seleccionada como principal para entrega, con mue
 \textbf{Modelo} & \textbf{HitRate@10} & \textbf{Precision@10} & \textbf{MAP@10} & \textbf{nDCG@10}\\
 \midrule
 Random & 0.0000 & 0.0000 & 0.0000 & 0.0000\\
-Most Popular & 0.0010 & 0.0001 & 0.0003 & 0.0004\\
-Playlist Name Popular & 0.0043 & 0.0004 & 0.0010 & 0.0017\\
-Two-Stage Cooc+Rerank & 0.0257 & 0.0026 & 0.0073 & 0.0115\\
-Two-Stage + LastFM & 0.0257 & 0.0026 & 0.0073 & 0.0115\\
+Most Popular & 0.0009 & 0.0001 & 0.0001 & 0.0003\\
+Playlist Name Popular & 0.0138 & 0.0014 & 0.0048 & 0.0069\\
+Two-Stage Cooc+Rerank & 0.1460 & 0.0146 & 0.0814 & 0.0965\\
+Two-Stage + LastFM & 0.1460 & 0.0146 & 0.0814 & 0.0965\\
 \bottomrule
 \end{tabular}
-\caption{Resultados finales del Midterm en evaluacion top-10 (fuente: resultados_hito2_midterm.csv).}
+\caption{Resultados finales del Midterm en evaluacion top-10 (fuente: resultados_hito2_midterm_60_full_20260604_2340.csv).}
 \label{tab:midterm_results_final}
 \end{table}
 
 \section{Conclusiones finales}
 
-\textbf{Conclusion 1}: Two-Stage Cooc+Rerank supera a Playlist Name Popular por un factor aproximado de 5.92x en HitRate@10 y 6.60x en nDCG@10.
+\textbf{Conclusion 1}: Two-Stage Cooc+Rerank supera a Playlist Name Popular por un factor aproximado de 10.60x en HitRate@10 y 14.03x en nDCG@10.
 
-\textbf{Conclusion 2}: frente a Most Popular, la mejora alcanza aproximadamente 25.67x en HitRate@10 y 26.82x en nDCG@10.
+\textbf{Conclusion 2}: frente a Most Popular, la mejora alcanza aproximadamente 157.80x en HitRate@10 y 301.67x en nDCG@10.
 
 \textbf{Conclusion 3}: En esta corrida, Two-Stage + LastFM presenta $\Delta$MAP@10=0.0000 y $\Delta$nDCG@10=0.0000 respecto a Two-Stage Cooc+Rerank.
 

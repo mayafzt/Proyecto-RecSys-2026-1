@@ -110,7 +110,7 @@ Se incorpora un pipeline reproducible en \texttt{hito2\_spotify\_lastfm\_midterm
     \item Baselines heredados: Random, Most Popular, Playlist Name Popular.
     \item Método principal: Two-Stage Cooc+Rerank.
     \item Variante enriquecida: Two-Stage + LastFM (activa si existe \texttt{LASTFM\_API\_KEY}).
-    \item Export de resultados a \texttt{resultados\_hito2\_midterm.csv} y \texttt{resultados\_hito2\_midterm.md}.
+    \item Export de resultados a archivos versionados por corrida mediante prefijo (por ejemplo, \texttt{resultados\_hito2\_midterm\_60\_full\_20260604\_2340.csv}).
 \end{itemize}
 
 Esto responde explícitamente a la observación de ``planificación general'' del Hito 1: se define qué método se implementa, cómo se calcula, con qué señales y contra qué modelos se compara.
@@ -133,44 +133,14 @@ Comparaciones concretas definidas para Midterm:
     \item Two-Stage + LastFM (ablation de enriquecimiento externo)
 \end{itemize}
 
-\section{Resultados preliminares Midterm}
-
-Para la corrida reportada en este informe se utilizó configuración reproducible de menor escala para ajustarse a memoria local: muestra determinística del 3\% de playlists y 3.000 playlists evaluadas con el protocolo \textit{leave-last-out}. Esto permite validar la dirección metodológica sin cambiar la definición del problema ni las métricas.
-
-\begin{table}[H]
-\centering
-\small
-\begin{tabular}{lrrrr}
-\toprule
-\textbf{Modelo} & \textbf{HitRate@10} & \textbf{Precision@10} & \textbf{MAP@10} & \textbf{nDCG@10}\\
-\midrule
-Random & 0.0000 & 0.0000 & 0.0000 & 0.0000\\
-Most Popular & 0.0010 & 0.0001 & 0.0003 & 0.0004\\
-Playlist Name Popular & 0.0043 & 0.0004 & 0.0010 & 0.0017\\
-Two-Stage Cooc+Rerank & 0.0257 & 0.0026 & 0.0073 & 0.0115\\
-Two-Stage + LastFM & 0.0257 & 0.0026 & 0.0073 & 0.0115\\
-\bottomrule
-\end{tabular}
-\caption{Resultados preliminares Midterm en evaluación top-10.}
-\label{tab:midterm_results}
-\end{table}
+\input{seccion_resultados_midterm_auto.tex}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.84\textwidth]{figures/spotify_midterm_metricas.png}
-    \caption{Comparación visual de métricas en Midterm para baselines y método principal two-stage.}
-    \label{fig:midterm_metricas}
+    \includegraphics[width=0.84\textwidth]{figures/spotify_midterm_metricas_60.png}
+    \caption{Comparación visual de métricas para la corrida principal del Midterm (60\% de muestra).}
+    \label{fig:midterm_metricas_60}
 \end{figure}
-
-\section{Análisis y conclusiones}
-
-\textbf{Conclusión 1 (objetivo principal)}: el enfoque two-stage supera de forma clara a los baselines definidos. Respecto de Playlist Name Popular, mejora aproximadamente 5.9 veces en HitRate@10 y 4.3 veces en nDCG@10.
-
-\textbf{Conclusión 2 (calidad de ranking temprano)}: el aumento en MAP@10 y nDCG@10 confirma que el método no solo acierta más, sino que ubica los aciertos en posiciones más altas del top-10, alineado con el objetivo de APC.
-
-\textbf{Conclusión 3 (señal LastFM en esta corrida)}: en esta ejecución, Two-Stage + LastFM empata con Two-Stage Cooc+Rerank. Esto sugiere que, con la configuración actual y sin ajuste fino de pesos por segmento, la señal externa aún no agrega ganancia medible. Se mantiene como línea válida para iteración en la entrega final.
-
-\textbf{Conclusión 4 (estado del proyecto)}: se cerró la brecha principal observada en el feedback del Hito 1. Ahora existe un método principal específico, con señales definidas, comparación concreta y evidencia experimental cuantitativa.
 
 \section{Criterios de éxito y próximos pasos}
 
