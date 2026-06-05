@@ -66,6 +66,24 @@ python hito2_spotify_lastfm_midterm.py
 - `resultados_hito2_midterm_*.csv`
 - `resultados_hito2_midterm_*.md`
 
+## Generar seccion final en LaTeX automaticamente
+
+Cuando elijan la corrida ganadora (por ejemplo `resultados_hito2_midterm_30_full.csv`), generar la seccion final asi:
+
+```powershell
+python generar_seccion_resultados_midterm.py `
+	--csv resultados_hito2_midterm_30_full.csv `
+	--output seccion_resultados_midterm_auto.tex `
+	--sample-percent 30 `
+	--eval-playlists 63851
+```
+
+Luego en el informe principal pueden insertar:
+
+```tex
+\input{seccion_resultados_midterm_auto.tex}
+```
+
 ## Criterio para elegir resultado principal del informe
 
 1. Priorizar corrida con mayor cobertura de playlists evaluadas sin fallas.
