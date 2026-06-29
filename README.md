@@ -7,7 +7,7 @@ Marzo-Julio 2026
 
 Este repositorio contiene el avance del Hito 1 del proyecto: recomendacion musical personalizada usando playlists de Spotify.
 
-Ademas, incluye el avance de Hito 2 (midterm): enfoque de dos etapas para Automatic Playlist Continuation con enriquecimiento opcional desde LastFM.
+Ademas, incluye la version final de Hito 2 para Automatic Playlist Continuation (APC), con comparaciones metodologicas mas fuertes, ablations por senal, analisis por segmentos y ejemplos cualitativos.
 
 ## Archivos principales
 
@@ -16,11 +16,11 @@ Ademas, incluye el avance de Hito 2 (midterm): enfoque de dos etapas para Automa
 - `Hito_1_Propuesta.md`: version Markdown de la propuesta.
 - `Hito_1_Spotify.ipynb`: notebook ejecutado del pipeline final con Spotify Playlists.
 - `hito1_spotify_baselines.py`: script reproducible con EDA, muestra del 30%, baselines y figuras.
-- `hito2_spotify_lastfm_midterm.py`: script de Midterm con metodo principal two-stage (co-ocurrencia + reranking) y senal LastFM opcional.
+- `hito2_spotify_lastfm_midterm.py`: script APC final con baselines, comparadores fuertes (secuencial y colaborativo), modelo two-stage hibrido, ablations por senal, metricas de diversidad/novedad y export de ejemplos/segmentos.
 - `resultados_hito1_spotify.md`: resumen de resultados generado por el script.
 - `resultados_hito1_spotify.csv`: tabla de metricas exportada.
-- `resultados_hito2_midterm.md`: resumen de resultados del pipeline de Midterm.
-- `resultados_hito2_midterm.csv`: tabla de metricas del pipeline de Midterm.
+- `resultados_hito2_midterm.md`: resumen de resultados del pipeline APC.
+- `resultados_hito2_midterm.csv`: tabla de metricas del pipeline APC.
 - `figures/`: figuras usadas por el informe LaTeX.
 - `prompts_ia_hito1.md`: resumen de prompts usados para documentar apoyo de IA.
 - `requirements.txt`: dependencias Python usadas por el pipeline.
@@ -77,18 +77,29 @@ python -m pip install -r requirements.txt
 python hito1_spotify_baselines.py
 ```
 
-Para Midterm (Hito 2):
+Para APC final (Hito 2):
 
 ```powershell
 python hito2_spotify_lastfm_midterm.py
 ```
 
-Opcional: activar enriquecimiento LastFM configurando API key en el entorno antes de ejecutar:
+Opcional: activar senal LastFM de forma acotada (solo para ablacion), configurando variables de entorno antes de ejecutar:
 
 ```powershell
+$env:MIDTERM_ENABLE_LASTFM="1"
+$env:MIDTERM_LASTFM_MAX_CALLS="1500"
 $env:LASTFM_API_KEY="TU_API_KEY"
 python hito2_spotify_lastfm_midterm.py
 ```
+
+Variables utiles del pipeline APC:
+
+- `MIDTERM_SAMPLE_PERCENT`
+- `MIDTERM_MAX_SAMPLE_PLAYLISTS`
+- `MIDTERM_MAX_EVAL_PLAYLISTS`
+- `MIDTERM_OUTPUT_PREFIX`
+- `MIDTERM_ENABLE_LASTFM`
+- `MIDTERM_LASTFM_MAX_CALLS`
 
 5. Revisar:
 
@@ -100,7 +111,14 @@ figures/
 
 Para compilar el informe en Overleaf, subir `Informe_Hito_1_Overleaf.tex` junto con la carpeta `figures/`.
 
-Para el informe Midterm, subir `Informe_Hito_2_Midterm_Overleaf.tex` junto con los archivos de resultados que se quieran citar en el documento.
+Para el informe Midterm/final, subir `Informe_Hito_2_Midterm_Overleaf.tex` junto con los archivos de resultados que se quieran citar en el documento.
+
+Archivos de salida APC final:
+
+- `{prefix}.csv`: tabla principal con metricas de ranking, diversidad y novedad.
+- `{prefix}.md`: resumen legible para el informe.
+- `{prefix}_ejemplos.csv`: ejemplos cualitativos de recomendaciones y perfiles.
+- `{prefix}_segmentos.csv`: desempeno por segmento (tamano de playlist y popularidad del target).
 
 ## Uso de IA
 
