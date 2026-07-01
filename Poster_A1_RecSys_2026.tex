@@ -7,6 +7,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
+% Salida en formato A1 (841 x 594 mm) en orientación horizontal.
 \usepackage[orientation=landscape,size=a1,scale=1.08]{beamerposter}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -76,11 +77,11 @@
 \newcommand{\separatorcolumn}{\begin{column}{\sepwidth}\end{column}}
 
 % ====================
-% Titulo
+% Título
 % ====================
-\title{Continuacion Automatica de Playlists (APC)}
-\author{Agustin Llambias \and Amaya Quero \and Larry Uribe}
-\institute{Pontificia Universidad Catolica de Chile -- IIC3633 Sistemas Recomendadores (2026-1)}
+\title{Continuación Automática de Playlists (APC)}
+\author{Agustín Llambias \and Amaya Quero \and Larry Uribe}
+\institute{Pontificia Universidad Católica de Chile -- IIC3633 Sistemas Recomendadores (2026-1)}
 
 \begin{document}
 \begin{frame}[t]
@@ -92,10 +93,10 @@
   {\usebeamerfont{author}\insertauthor\par}
   {\usebeamerfont{institute}\insertinstitute}
   \vspace{0.15cm}
-  {\small \textbf{Mensaje clave:} el modelo hibrido mejora cobertura y mantiene un rendimiento competitivo sin depender de APIs externas.\par}
+  {\small \textbf{Mensaje clave:} el modelo híbrido mejora cobertura y mantiene un rendimiento competitivo sin depender de APIs externas.\par}
 \end{beamercolorbox}
 \begin{tikzpicture}[remember picture,overlay]
-  \node[anchor=north east, xshift=-1.25cm, yshift=-0.06cm, inner sep=0pt] at (current page.north east) {\includegraphics[height=5.05cm]{poster_assets/figures/UC.png}};
+  \node[anchor=north east, xshift=-1.60cm, yshift=-0.26cm, inner sep=0pt] at (current page.north east) {\includegraphics[height=5.05cm]{poster_assets/figures/UC.png}};
 \end{tikzpicture}
 \begin{beamercolorbox}[wd=\textwidth,ht=0.28cm,dp=0cm]{author in headline}\end{beamercolorbox}
 \vspace{-0.08cm}
@@ -105,27 +106,27 @@
 
 \begin{column}{\colwidth}
 
-\begin{block}{1. Introduccion}
+\begin{block}{1. Introducción}
 La tarea de \textit{Automatic Playlist Continuation} (APC) consiste en recomendar canciones para extender playlists existentes de forma coherente con el contexto musical ya presente.
 
 En escenarios reales, APC enfrenta dos tensiones: maximizar calidad de ranking y mantener diversidad/cobertura para evitar recomendaciones redundantes.
 
-Este trabajo propone un enfoque reproducible y local, sin dependencia operacional de APIs externas. La idea es capturar senales de co-ocurrencia y contexto minimo para producir recomendaciones coherentes, pero tambien utiles para exploracion del catalogo.
+Este trabajo propone un enfoque reproducible y local, sin dependencia operacional de APIs externas. La idea es capturar señales de co-ocurrencia y contexto mínimo para producir recomendaciones coherentes, pero también útiles para exploración del catálogo.
 
-La contribucion principal es un protocolo completo de evaluacion que combina exactitud, cobertura y analisis por segmentos sobre un mismo conjunto de playlists.
+La contribución principal es un protocolo completo de evaluación que combina exactitud, cobertura y análisis por segmentos sobre un mismo conjunto de playlists.
 \end{block}
 
-\begin{alertblock}{2. Pregunta de investigacion y objetivos}
-\textbf{Pregunta:} Que tan competitivo es un sistema APC local y reproducible de dos etapas frente a metodos secuenciales y colaborativos, al evaluar tanto accuracy como metricas beyond-accuracy.
+\begin{alertblock}{2. Pregunta de investigación y objetivos}
+\textbf{Pregunta:} ¿Qué tan competitivo es un sistema APC local y reproducible de dos etapas frente a métodos secuenciales y colaborativos, al evaluar tanto accuracy como métricas beyond-accuracy?
 
 \vspace{0.15cm}
-\textbf{Hipotesis de trabajo:} la co-ocurrencia debe dominar la calidad estructural del ranking, mientras que el reranking local ayuda a sostener cobertura y diversidad.
+\textbf{Hipótesis de trabajo:} la co-ocurrencia debe dominar la calidad estructural del ranking, mientras que el reranking local ayuda a sostener cobertura y diversidad.
 
 \vspace{0.25cm}
 \textbf{Objetivos:}
 \begin{itemize}
   \item Evaluar rendimiento frente a baselines fuertes.
-  \item Cuantificar aporte de cada senal mediante ablations.
+  \item Cuantificar aporte de cada señal mediante ablations.
   \item Analizar comportamiento por segmentos y casos cualitativos.
 \end{itemize}
 \end{alertblock}
@@ -133,20 +134,22 @@ La contribucion principal es un protocolo completo de evaluacion que combina exa
 \begin{block}{3. Datos y protocolo experimental}
 \begin{itemize}
   \item Dataset Spotify Playlists (Kaggle) con muestra deterministica por hash.
-  \item Ejecucion principal: 30\% (63,851 playlists evaluadas).
-  \item Ejecucion de sensibilidad: 20\%.
-  \item Esquema de evaluacion: \textit{leave-last-out}, minimo 3 canciones por playlist.
+  \item Ejecución principal: 30\% (63,851 playlists evaluadas).
+  \item Ejecución de sensibilidad: 20\%.
+  \item Esquema de evaluación: \textit{leave-last-out}, mínimo 3 canciones por playlist.
 \end{itemize}
 \end{block}
 
-\begin{block}{4. Metodologia propuesta}
+\begin{block}{4. Metodología propuesta}
 \textbf{Two-Stage Hybrid}
 \begin{enumerate}
-  \item \textbf{Retrieval}: vecinos item-item por co-ocurrencia (normalizacion coseno).
-  \item \textbf{Reranking}: fusion ponderada de cooc + popularidad + artista + nombre de playlist.
+  \item \textbf{Retrieval}: vecinos item-item por co-ocurrencia (normalización coseno).
+  \item \textbf{Reranking}: fusión ponderada de cooc + popularidad + artista + nombre de playlist.
 \end{enumerate}
 
-La primera etapa reduce el espacio de busqueda a candidatos plausibles; la segunda reordena con senales locales que ayudan a recuperar contexto y a suavizar sesgos de popularidad.
+\textbf{Definición de señal cooc:} \textit{cooc} corresponde a la frecuencia de co-ocurrencia de dos canciones dentro de una misma playlist; a mayor co-ocurrencia relativa, mayor afinidad estructural entre ítems.
+
+La primera etapa reduce el espacio de búsqueda a candidatos plausibles; la segunda reordena con señales locales que ayudan a recuperar contexto y a suavizar sesgos de popularidad.
 
 \textbf{Comparadores incluidos}
 \begin{itemize}
@@ -164,7 +167,7 @@ La primera etapa reduce el espacio de busqueda a candidatos plausibles; la segun
   \node[draw,rounded corners,fill=ucgold!20,below=of c2,minimum width=6.4cm,minimum height=0.95cm,align=center] (c3) {Reranking local ponderado};
   \node[draw,rounded corners,fill=ucgold!35,below=of c3,minimum width=6.4cm,minimum height=0.95cm,align=center] (c4) {Top-10 final};
 
-  \node[draw,rounded corners,fill=white,right=0.85cm of c2,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s1) {Senales de reranking: cooc};
+  \node[draw,rounded corners,fill=white,right=0.85cm of c2,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s1) {Señales de reranking: cooc};
   \node[draw,rounded corners,fill=white,below=0.18cm of s1,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s2) {popularidad};
   \node[draw,rounded corners,fill=white,below=0.18cm of s2,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s3) {artista};
   \node[draw,rounded corners,fill=white,below=0.18cm of s3,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s4) {nombre playlist};
@@ -179,7 +182,7 @@ La primera etapa reduce el espacio de busqueda a candidatos plausibles; la segun
 \end{tikzpicture}
 \end{block}
 
-  \begin{exampleblock}{6. Metricas reportadas}
+  \begin{exampleblock}{6. Métricas reportadas}
 \begin{itemize}
   \item Accuracy: HitRate@10, Precision@10, MAP@10, nDCG@10.
   \item Beyond-accuracy: ILD@10 (diversidad), Novelty@10, CatalogCoverage@10.
@@ -201,20 +204,20 @@ La primera etapa reduce el espacio de busqueda a candidatos plausibles; la segun
 
 \begin{column}{\colwidth}
 
-\begin{block}{7. Resultados principales (ejecucion 30\%)}
+\begin{block}{7. Resultados principales (ejecución 30\%)}
 \centering
 \includegraphics[width=0.93\linewidth]{poster_assets/figures/fig_main_benchmark.png}
 \end{block}
 
 \begin{columns}[t,totalwidth=\linewidth]
 \begin{column}{0.49\linewidth}
-\begin{block}{8. Ablations por senal}
+\begin{block}{8. Ablations por señal}
 \centering
 \includegraphics[width=0.93\linewidth]{poster_assets/figures/fig_ablation_map_drop.png}
 \end{block}
 \end{column}
 \begin{column}{0.49\linewidth}
-\begin{block}{9. Robustez (ejecucion 20\%)}
+\begin{block}{9. Robustez (ejecución 20\%)}
 \centering
 \includegraphics[width=0.93\linewidth]{poster_assets/figures/fig_sensitivity_comparison.png}
 \end{block}
@@ -226,27 +229,27 @@ La primera etapa reduce el espacio de busqueda a candidatos plausibles; la segun
 \includegraphics[width=0.93\linewidth]{poster_assets/figures/fig_beyond_accuracy.png}
 \end{block}
 
-\begin{exampleblock}{11. Analisis de resultados}
+\begin{exampleblock}{11. Análisis de resultados}
 \begin{itemize}
   \item Markov lidera en calidad de ranking (MAP/nDCG).
-  \item Two-Stage mantiene HitRate competitivo y mayor cobertura de catalogo.
-  \item La ablacion \textit{sin cooc} produce la mayor caida: cooc es la senal estructural clave.
-  \item El metodo hibrido ofrece mejor balance entre exactitud y exploracion del catalogo.
+  \item Two-Stage mantiene HitRate competitivo y mayor cobertura de catálogo.
+  \item La ablación \textit{sin cooc} produce la mayor caída: cooc es la señal estructural clave.
+  \item El método híbrido ofrece mejor balance entre exactitud y exploración del catálogo.
 \end{itemize}
 
 \vspace{0.08cm}
-La lectura conjunta de las metricas sugiere que el modelo no solo acierta mas o menos, sino que reordena mejor el espacio de recomendacion cuando necesita cubrir perfiles menos frecuentes.
+La lectura conjunta de las métricas sugiere que el modelo no solo acierta más o menos, sino que reordena mejor el espacio de recomendación cuando necesita cubrir perfiles menos frecuentes.
 \end{exampleblock}
 
 \begin{block}{17. Trabajo futuro}
 \footnotesize
 \begin{itemize}
   \item Reranking sensible a cola larga (targets \textit{tail}).
-  \item Ajuste dinamico de pesos segun coherencia y tamano de playlist.
+  \item Ajuste dinámico de pesos según coherencia y tamaño de playlist.
   \item Embeddings semanticos livianos para reducir drift de genero.
 \end{itemize}
 \vspace{0.04cm}
-Evaluar estas variantes por segmento y por dominio musical ayudaria a medir estabilidad real fuera de la muestra actual.
+Evaluar estas variantes por segmento y por dominio musical ayudaría a medir estabilidad real fuera de la muestra actual.
 \end{block}
 
 \end{column}
@@ -255,12 +258,12 @@ Evaluar estas variantes por segmento y por dominio musical ayudaria a medir esta
 
 \begin{column}{\colwidth}
 
-\begin{block}{12. Analisis por segmentos}
+\begin{block}{12. Análisis por segmentos}
 \centering
 \includegraphics[width=0.93\linewidth]{poster_assets/figures/fig_segment_heatmap.png}
 
 \vspace{0.08cm}
-\small HitRate@10 segun tamano de playlist y popularidad del target.
+\small HitRate@10 según tamaño de playlist y popularidad del target.
 \end{block}
 
 \begin{block}{13. Evidencia cualitativa}
@@ -270,33 +273,33 @@ Evaluar estas variantes por segmento y por dominio musical ayudaria a medir esta
 \textbf{Caso de error (perfil long + tail):} deriva hacia subgeneros cercanos, sin capturar identidad de nicho del target.
 
 \vspace{0.18cm}
-Estos casos muestran el patron mas estable del sistema: cuando existe suficiente huella de co-ocurrencia, el reranking refina bien; cuando el target es muy raro, faltan senales externas para desambiguar.
+Estos casos muestran el patrón más estable del sistema: cuando existe suficiente huella de co-ocurrencia, el reranking refina bien; cuando el target es muy raro, faltan señales externas para desambiguar.
 \end{block}
 
-\begin{alertblock}{14. Decision metodologica sobre LastFM}
+\begin{alertblock}{14. Decisión metodológica sobre LastFM}
 LastFM se evaluo como enriquecimiento opcional, pero se excluyo del pipeline principal por latencia de API y reproducibilidad limitada a gran escala.
 
-La evaluacion final prioriza un protocolo \textbf{local, estable y repetible}.
+La evaluación final prioriza un protocolo \textbf{local, estable y repetible}.
 
-En un poster final, esta decision importa porque fija un mensaje metodologico claro: la validez experimental depende de que el sistema pueda volver a ejecutarse con las mismas entradas y sin costo operacional oculto.
+En un póster final, esta decisión importa porque fija un mensaje metodológico claro: la validez experimental depende de que el sistema pueda volver a ejecutarse con las mismas entradas y sin costo operacional oculto.
 \end{alertblock}
 
-\begin{block}{15. Discusion y limitaciones}
+\begin{block}{15. Discusión y limitaciones}
 \begin{itemize}
   \item El rendimiento disminuye en playlists largas con targets de cola larga.
-  \item La ausencia de embeddings semanticos limita la capacidad de generalizacion en nichos.
-  \item Existe un trade-off explicito entre diversidad extrema y precision de ranking.
+  \item La ausencia de embeddings semánticos limita la capacidad de generalización en nichos.
+  \item Existe un trade-off explícito entre diversidad extrema y precisión de ranking.
 \end{itemize}
 
 \vspace{0.04cm}
-En consecuencia, el sistema es solido como base metodologica, pero todavia sensible a escenarios donde la coherencia musical no puede inferirse solo con co-ocurrencia local.
+En consecuencia, el sistema es sólido como base metodológica, pero todavía sensible a escenarios donde la coherencia musical no puede inferirse solo con co-ocurrencia local.
 \end{block}
 
 \begin{exampleblock}{16. Conclusiones}
 \begin{enumerate}
   \item Two-Stage Hybrid es una base robusta y reproducible para APC.
-  \item Comparadores fuertes (Markov/ItemKNN) son esenciales para una evaluacion justa.
-  \item Las metricas beyond-accuracy muestran trade-offs relevantes para despliegue real.
+  \item Comparadores fuertes (Markov/ItemKNN) son esenciales para una evaluación justa.
+  \item Las métricas beyond-accuracy muestran trade-offs relevantes para despliegue real.
 \end{enumerate}
 
 \vspace{0.05cm}
