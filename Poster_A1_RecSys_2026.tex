@@ -2,7 +2,7 @@
 \mode<presentation>{\usetheme{default}}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[orientation=portrait,size=a1,scale=1.15]{beamerposter}
+\usepackage[orientation=landscape,size=a1,scale=1.08]{beamerposter}
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{amsmath}
@@ -22,16 +22,23 @@
 \definecolor{warnred}{HTML}{C62828}
 
 \setbeamertemplate{navigation symbols}{}
+\setbeamercolor{background canvas}{bg=white}
 \setbeamercolor{headline}{fg=white,bg=ucblue}
 \setbeamercolor{title in headline}{fg=white,bg=ucblue}
-\setbeamercolor{author in headline}{fg=white,bg=ucblue}
+\setbeamercolor{author in headline}{fg=white,bg=ucgold}
 \setbeamercolor{institute in headline}{fg=white,bg=ucblue}
-\setbeamercolor{block title}{fg=white,bg=ucdark}
+\setbeamercolor{block title}{fg=white,bg=ucblue}
 \setbeamercolor{block body}{fg=black,bg=white}
-\setbeamercolor{alertblock title}{fg=white,bg=warnred}
-\setbeamercolor{alertblock body}{fg=black,bg=white}
-\setbeamercolor{exampleblock title}{fg=white,bg=okgreen}
-\setbeamercolor{exampleblock body}{fg=black,bg=white}
+\setbeamercolor{alertblock title}{fg=white,bg=ucdark}
+\setbeamercolor{alertblock body}{fg=black,bg=uclight}
+\setbeamercolor{exampleblock title}{fg=white,bg=ucgold}
+\setbeamercolor{exampleblock body}{fg=black,bg=uclight}
+
+\setbeamerfont{title}{size=\LARGE,series=\bfseries}
+\setbeamerfont{author}{size=\large}
+\setbeamerfont{institute}{size=\normalsize}
+\setbeamerfont{block title}{size=\large,series=\bfseries}
+\setbeamerfont{block body}{size=\normalsize}
 
 \setlength{\leftmargini}{1.1em}
 
@@ -41,6 +48,15 @@
 
 \begin{document}
 \begin{frame}[t]
+
+\begin{beamercolorbox}[wd=\textwidth,ht=6.0cm,dp=0.8cm,leftskip=1.3cm,rightskip=1.3cm]{title in headline}
+  {\usebeamerfont{title}\inserttitle\par}
+  \vspace{0.35cm}
+  {\usebeamerfont{author}\insertauthor\par}
+  {\usebeamerfont{institute}\insertinstitute}
+\end{beamercolorbox}
+\begin{beamercolorbox}[wd=\textwidth,ht=0.28cm,dp=0cm]{author in headline}\end{beamercolorbox}
+\vspace{0.7cm}
 
 \begin{columns}[t,totalwidth=\textwidth]
 
