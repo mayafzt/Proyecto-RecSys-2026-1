@@ -84,11 +84,27 @@
 
 \begin{column}{\colwidth}
 
-\begin{alertblock}{Pregunta de investigacion}
-\textbf{Que tan competitivo es un sistema APC local y reproducible de dos etapas frente a metodos mas fuertes, al evaluar ranking y metricas beyond-accuracy?}
+\begin{block}{1. Introduccion}
+La tarea de \textit{Automatic Playlist Continuation} (APC) consiste en recomendar canciones para extender playlists existentes de forma coherente con el contexto musical ya presente.
+
+En escenarios reales, APC enfrenta dos tensiones: maximizar calidad de ranking y mantener diversidad/cobertura para evitar recomendaciones redundantes.
+
+Este trabajo propone un enfoque reproducible y local, sin dependencia operacional de APIs externas.
+\end{block}
+
+\begin{alertblock}{2. Pregunta de investigacion y objetivos}
+\textbf{Pregunta:} Que tan competitivo es un sistema APC local y reproducible de dos etapas frente a metodos secuenciales y colaborativos, al evaluar tanto accuracy como metricas beyond-accuracy.
+
+\vspace{0.25cm}
+\textbf{Objetivos:}
+\begin{itemize}
+  \item Evaluar rendimiento frente a baselines fuertes.
+  \item Cuantificar aporte de cada senal mediante ablations.
+  \item Analizar comportamiento por segmentos y casos cualitativos.
+\end{itemize}
 \end{alertblock}
 
-\begin{block}{Datos y protocolo experimental}
+\begin{block}{3. Datos y protocolo experimental}
 \begin{itemize}
   \item Dataset Spotify Playlists (Kaggle) con muestra deterministica por hash.
   \item Corrida principal: 30\% (63,851 playlists evaluadas).
@@ -97,7 +113,7 @@
 \end{itemize}
 \end{block}
 
-\begin{block}{Metodologia propuesta}
+\begin{block}{4. Metodologia propuesta}
 \textbf{Two-Stage Hybrid}
 \begin{enumerate}
   \item \textbf{Retrieval}: vecinos item-item por co-ocurrencia (normalizacion coseno).
@@ -112,7 +128,7 @@
 \end{itemize}
 \end{block}
 
-\begin{block}{Pipeline visual}
+\begin{block}{5. Arquitectura (pipeline visual)}
 \centering
 \begin{tikzpicture}[node distance=0.82cm,>=latex,scale=0.94,transform shape]
   \node[draw,rounded corners,fill=uclight,minimum width=3.5cm,minimum height=1.0cm] (c1) {Contexto playlist};
@@ -125,7 +141,7 @@
 \end{tikzpicture}
 \end{block}
 
-\begin{exampleblock}{Metricas reportadas}
+  \begin{exampleblock}{6. Metricas reportadas}
 \begin{itemize}
   \item Accuracy: HitRate@10, Precision@10, MAP@10, nDCG@10.
   \item Beyond-accuracy: ILD@10 (diversidad), Novelty@10, CatalogCoverage@10.
@@ -138,36 +154,37 @@
 
 \begin{column}{\colwidth}
 
-\begin{block}{Resultados principales (corrida 30\%)}
+\begin{block}{7. Resultados principales (corrida 30\%)}
 \centering
 \includegraphics[width=0.98\linewidth]{poster_assets/figures/fig_main_benchmark.png}
 \end{block}
 
 \begin{columns}[t,totalwidth=\linewidth]
 \begin{column}{0.49\linewidth}
-\begin{block}{Ablations por senal}
+\begin{block}{8. Ablations por senal}
 \centering
 \includegraphics[width=0.98\linewidth]{poster_assets/figures/fig_ablation_map_drop.png}
 \end{block}
 \end{column}
 \begin{column}{0.49\linewidth}
-\begin{block}{Robustez (20\%)}
+\begin{block}{9. Robustez (20\%)}
 \centering
 \includegraphics[width=0.98\linewidth]{poster_assets/figures/fig_sensitivity_comparison.png}
 \end{block}
 \end{column}
 \end{columns}
 
-\begin{block}{Trade-off beyond-accuracy}
+\begin{block}{10. Trade-off beyond-accuracy}
 \centering
 \includegraphics[width=0.98\linewidth]{poster_assets/figures/fig_beyond_accuracy.png}
 \end{block}
 
-\begin{exampleblock}{Lectura de resultados}
+\begin{exampleblock}{11. Analisis de resultados}
 \begin{itemize}
   \item Markov lidera en calidad de ranking (MAP/nDCG).
   \item Two-Stage mantiene HitRate competitivo y mayor cobertura de catalogo.
   \item La ablacion \textit{sin cooc} produce la mayor caida: cooc es la senal estructural clave.
+  \item El metodo hibrido ofrece mejor balance entre exactitud y exploracion del catalogo.
 \end{itemize}
 \end{exampleblock}
 
@@ -177,7 +194,7 @@
 
 \begin{column}{\colwidth}
 
-\begin{block}{Analisis por segmentos}
+\begin{block}{12. Analisis por segmentos}
 \centering
 \includegraphics[width=0.98\linewidth]{poster_assets/figures/fig_segment_heatmap.png}
 
@@ -185,20 +202,28 @@
 \small HitRate@10 segun tamano de playlist y popularidad del target.
 \end{block}
 
-\begin{block}{Evidencia cualitativa}
+\begin{block}{13. Evidencia cualitativa}
 \textbf{Caso de acierto (perfil medium + head):} el modelo conserva coherencia musical y recupera recomendaciones cercanas al objetivo.
 
 \vspace{0.35cm}
 \textbf{Caso de error (perfil long + tail):} deriva hacia subgeneros cercanos, sin capturar identidad de nicho del target.
 \end{block}
 
-\begin{alertblock}{Decision metodologica sobre LastFM}
+\begin{alertblock}{14. Decision metodologica sobre LastFM}
 LastFM se evaluo como enriquecimiento opcional, pero se excluyo del pipeline principal por latencia de API y reproducibilidad limitada a gran escala.
 
 La evaluacion final prioriza un protocolo \textbf{local, estable y repetible}.
 \end{alertblock}
 
-\begin{exampleblock}{Conclusiones}
+\begin{block}{15. Discusion y limitaciones}
+\begin{itemize}
+  \item El rendimiento disminuye en playlists largas con targets de cola larga.
+  \item La ausencia de embeddings semanticos limita la capacidad de generalizacion en nichos.
+  \item Existe un trade-off explicito entre diversidad extrema y precision de ranking.
+\end{itemize}
+\end{block}
+
+\begin{exampleblock}{16. Conclusiones}
 \begin{enumerate}
   \item Two-Stage Hybrid es una base robusta y reproducible para APC.
   \item Comparadores fuertes (Markov/ItemKNN) son esenciales para una evaluacion justa.
@@ -206,12 +231,21 @@ La evaluacion final prioriza un protocolo \textbf{local, estable y repetible}.
 \end{enumerate}
 \end{exampleblock}
 
-\begin{block}{Trabajo futuro}
+\begin{block}{17. Trabajo futuro}
 \begin{itemize}
   \item Reranking sensible a cola larga (targets \textit{tail}).
   \item Ajuste dinamico de pesos segun coherencia/tamano de playlist.
   \item Embeddings semanticos livianos para reducir drift de genero.
 \end{itemize}
+\end{block}
+
+\begin{block}{18. Referencias}
+\footnotesize
+\begin{enumerate}
+  \item Raasveldt, M. y Muhleisen, H. \textit{DuckDB: An Embeddable Analytical Database}. CIDR, 2020.
+  \item Chen, S. et al. \textit{Automatic Playlist Continuation through a Hybrid of Collaborative and Content Signals}. RecSys Workshop.
+  \item Schedl, M. et al. \textit{Current Challenges and Visions in Music Recommender Systems Research}. International Journal of Multimedia Information Retrieval.
+\end{enumerate}
 \end{block}
 
 \end{column}
