@@ -1,8 +1,14 @@
 \documentclass[final]{beamer}
 \mode<presentation>{\usetheme{default}}
+
+% ====================
+% Paquetes
+% ====================
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage{lmodern}
 \usepackage[orientation=landscape,size=a1,scale=1.08]{beamerposter}
+\usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{amsmath}
@@ -13,7 +19,9 @@
 \pgfplotsset{compat=1.18}
 \usetikzlibrary{positioning}
 
-% UC-inspired palette (blue + gold)
+% ====================
+% Colores UC
+% ====================
 \definecolor{ucblue}{HTML}{0039A6}
 \definecolor{ucdark}{HTML}{001A4D}
 \definecolor{ucgold}{HTML}{C99700}
@@ -21,12 +29,13 @@
 \definecolor{okgreen}{HTML}{2E7D32}
 \definecolor{warnred}{HTML}{C62828}
 
+% ====================
+% Estilo
+% ====================
 \setbeamertemplate{navigation symbols}{}
 \setbeamercolor{background canvas}{bg=white}
-\setbeamercolor{headline}{fg=white,bg=ucblue}
 \setbeamercolor{title in headline}{fg=white,bg=ucblue}
 \setbeamercolor{author in headline}{fg=white,bg=ucgold}
-\setbeamercolor{institute in headline}{fg=white,bg=ucblue}
 \setbeamercolor{block title}{fg=white,bg=ucblue}
 \setbeamercolor{block body}{fg=black,bg=white}
 \setbeamercolor{alertblock title}{fg=white,bg=ucdark}
@@ -39,216 +48,175 @@
 \setbeamerfont{institute}{size=\normalsize}
 \setbeamerfont{block title}{size=\large,series=\bfseries}
 \setbeamerfont{block body}{size=\normalsize}
-
 \setlength{\leftmargini}{1.1em}
 
-\title{Automatic Playlist Continuation (APC)\\\large Two-Stage Hybrid vs Sequential and Collaborative Baselines}
+% ====================
+% Layout con separadores (estilo plantilla)
+% ====================
+\newlength{\sepwidth}
+\newlength{\colwidth}
+\setlength{\sepwidth}{0.025\paperwidth}
+\setlength{\colwidth}{0.30\paperwidth}
+\newcommand{\separatorcolumn}{\begin{column}{\sepwidth}\end{column}}
+
+% ====================
+% Titulo
+% ====================
+\title{Continuacion Automatica de Playlists (APC)}
 \author{Agustin Llambias \and Amaya Quero \and Larry Uribe}
 \institute{Pontificia Universidad Catolica de Chile -- IIC3633 Sistemas Recomendadores (2026-1)}
 
 \begin{document}
 \begin{frame}[t]
 
-\begin{beamercolorbox}[wd=\textwidth,ht=6.0cm,dp=0.8cm,leftskip=1.3cm,rightskip=1.3cm]{title in headline}
+\begin{beamercolorbox}[wd=\textwidth,ht=6.2cm,dp=0.8cm,leftskip=1.3cm,rightskip=1.3cm]{title in headline}
   {\usebeamerfont{title}\inserttitle\par}
   \vspace{0.35cm}
+  {\large \textbf{Two-Stage Hybrid vs. Baselines Secuenciales y Colaborativos}\par}
   {\usebeamerfont{author}\insertauthor\par}
   {\usebeamerfont{institute}\insertinstitute}
 \end{beamercolorbox}
 \begin{beamercolorbox}[wd=\textwidth,ht=0.28cm,dp=0cm]{author in headline}\end{beamercolorbox}
-\vspace{0.7cm}
+\vspace{0.6cm}
 
-\begin{columns}[t,totalwidth=\textwidth]
+\begin{columns}[t]
+\separatorcolumn
 
-\begin{column}{0.31\textwidth}
+\begin{column}{\colwidth}
 
-\begin{alertblock}{Research Question}
-How competitive is a local and reproducible Two-Stage APC system against stronger alternatives when we measure both ranking quality and beyond-accuracy behavior?
+\begin{alertblock}{Pregunta de investigacion}
+\textbf{Que tan competitivo es un sistema APC local y reproducible de dos etapas frente a metodos mas fuertes, al evaluar ranking y metricas beyond-accuracy?}
 \end{alertblock}
 
-\begin{block}{Dataset and Protocol}
+\begin{block}{Datos y protocolo experimental}
 \begin{itemize}
-  \item Spotify playlists dataset (Kaggle), deterministic hash sampling.
-  \item Main run: 30\% sample, 63,851 playlists evaluated.
-  \item Sensitivity run: 20\% sample.
-  \item Split: leave-last-out, minimum 3 tracks per playlist.
+  \item Dataset Spotify Playlists (Kaggle) con muestra deterministica por hash.
+  \item Corrida principal: 30\% (63,851 playlists evaluadas).
+  \item Corrida de sensibilidad: 20\%.
+  \item Esquema de evaluacion: \textit{leave-last-out}, minimo 3 canciones por playlist.
 \end{itemize}
 \end{block}
 
-\begin{block}{Method Overview}
+\begin{block}{Metodologia propuesta}
 \textbf{Two-Stage Hybrid}
 \begin{enumerate}
-  \item Retrieval: item-item co-occurrence neighbors (cosine normalized).
-  \item Reranking: weighted fusion of cooc, popularity, artist-match, playlist-name tokens.
+  \item \textbf{Retrieval}: vecinos item-item por co-ocurrencia (normalizacion coseno).
+  \item \textbf{Reranking}: fusion ponderada de cooc + popularidad + artista + nombre de playlist.
 \end{enumerate}
 
-\vspace{0.3em}
-\textbf{Compared models}
+\textbf{Comparadores incluidos}
 \begin{itemize}
-  \item Sequential Markov (first-order transitions)
+  \item Sequential Markov (primer orden)
   \item Collaborative ItemKNN
   \item Random, Most Popular, Playlist Name Popular
 \end{itemize}
 \end{block}
 
-\begin{block}{Visual Pipeline}
+\begin{block}{Pipeline visual}
 \centering
-\begin{tikzpicture}[node distance=0.85cm,>=latex,scale=0.95,transform shape]
-  \node[draw,rounded corners,fill=uclight,minimum width=3.6cm,minimum height=1.0cm] (c1) {Playlist context};
-  \node[draw,rounded corners,fill=uclight,right=1.3cm of c1,minimum width=3.6cm,minimum height=1.0cm] (c2) {Cooc retrieval};
-  \node[draw,rounded corners,fill=uclight,right=1.3cm of c2,minimum width=3.8cm,minimum height=1.0cm] (c3) {Hybrid reranking};
-  \node[draw,rounded corners,fill=ucgold!25,right=1.3cm of c3,minimum width=2.8cm,minimum height=1.0cm] (c4) {Top-10 recs};
+\begin{tikzpicture}[node distance=0.82cm,>=latex,scale=0.94,transform shape]
+  \node[draw,rounded corners,fill=uclight,minimum width=3.5cm,minimum height=1.0cm] (c1) {Contexto playlist};
+  \node[draw,rounded corners,fill=uclight,right=1.2cm of c1,minimum width=3.4cm,minimum height=1.0cm] (c2) {Retrieval cooc};
+  \node[draw,rounded corners,fill=uclight,right=1.2cm of c2,minimum width=3.6cm,minimum height=1.0cm] (c3) {Reranking hibrido};
+  \node[draw,rounded corners,fill=ucgold!25,right=1.2cm of c3,minimum width=2.6cm,minimum height=1.0cm] (c4) {Top-10};
   \draw[->,thick,ucblue] (c1) -- (c2);
   \draw[->,thick,ucblue] (c2) -- (c3);
   \draw[->,thick,ucblue] (c3) -- (c4);
 \end{tikzpicture}
 \end{block}
 
-\begin{exampleblock}{Key Metrics}
+\begin{exampleblock}{Metricas reportadas}
 \begin{itemize}
   \item Accuracy: HitRate@10, Precision@10, MAP@10, nDCG@10.
-  \item Beyond-accuracy: ILD@10 (diversity), Novelty@10, CatalogCoverage@10.
+  \item Beyond-accuracy: ILD@10 (diversidad), Novelty@10, CatalogCoverage@10.
 \end{itemize}
 \end{exampleblock}
 
 \end{column}
 
-\begin{column}{0.38\textwidth}
+\separatorcolumn
 
-\begin{block}{Main Benchmark (30\% Full Run)}
-\begin{center}
-\begin{tabular}{lccc}
-\toprule
-Model & Hit@10 & MAP@10 & Cov@10 \\
-\midrule
-Sequential Markov & 0.1257 & 0.0813 & 0.0910 \\
-Two-Stage Hybrid & 0.1254 & 0.0684 & 0.1566 \\
-Collaborative ItemKNN & 0.0966 & 0.0551 & 0.1447 \\
-Playlist Name Pop & 0.0123 & 0.0046 & 0.0623 \\
-\bottomrule
-\end{tabular}
-\end{center}
+\begin{column}{\colwidth}
 
-\vspace{0.45em}
-\begin{tikzpicture}
-\begin{axis}[
-  width=0.96\linewidth,
-  height=0.29\textheight,
-  ybar,
-  bar width=9pt,
-  ymin=0,
-  ymax=0.17,
-  enlarge x limits=0.15,
-  symbolic x coords={Markov,Hybrid,ItemKNN,NamePop},
-  xtick=data,
-  xticklabel style={font=\small,rotate=15,anchor=east},
-  ylabel={Score},
-  legend style={at={(0.5,1.02)},anchor=south,legend columns=3,font=\small},
-  ymajorgrids=true,
-  grid style={dashed,gray!30}
-]
-\addplot[fill=ucblue] coordinates {(Markov,0.1257) (Hybrid,0.1254) (ItemKNN,0.0966) (NamePop,0.0123)};
-\addplot[fill=ucgold!80!black] coordinates {(Markov,0.0813) (Hybrid,0.0684) (ItemKNN,0.0551) (NamePop,0.0046)};
-\addplot[fill=okgreen] coordinates {(Markov,0.0910) (Hybrid,0.1566) (ItemKNN,0.1447) (NamePop,0.0623)};
-\legend{Hit@10,MAP@10,Cov@10}
-\end{axis}
-\end{tikzpicture}
+\begin{block}{Resultados principales (corrida 30\%)}
+\centering
+\includegraphics[width=0.98\linewidth]{poster_assets/figures/fig_main_benchmark.png}
 \end{block}
 
 \begin{columns}[t,totalwidth=\linewidth]
 \begin{column}{0.49\linewidth}
-\begin{exampleblock}{Ablation Impact (MAP@10 drop)}
-\begin{itemize}
-  \item Remove cooc: \textbf{-5.22 pp}
-  \item Remove artist: -0.65 pp
-  \item Remove name: -0.53 pp
-  \item Remove pop: -0.05 pp
-\end{itemize}
-\textbf{Conclusion:} co-occurrence is the structural core.
-\end{exampleblock}
+\begin{block}{Ablations por senal}
+\centering
+\includegraphics[width=0.98\linewidth]{poster_assets/figures/fig_ablation_map_drop.png}
+\end{block}
 \end{column}
 \begin{column}{0.49\linewidth}
-\begin{block}{Sensitivity (20\% run)}
-\begin{itemize}
-  \item Markov: Hit@10=0.0931, MAP@10=0.0618
-  \item Hybrid: Hit@10=0.0934, MAP@10=0.0457
-  \item ItemKNN: Hit@10=0.0642, MAP@10=0.0333
-\end{itemize}
-Relative ordering remains stable.
+\begin{block}{Robustez (20\%)}
+\centering
+\includegraphics[width=0.98\linewidth]{poster_assets/figures/fig_sensitivity_comparison.png}
 \end{block}
 \end{column}
 \end{columns}
 
-\begin{block}{Beyond-Accuracy Trade-off}
-\begin{center}
-\begin{tabular}{lccc}
-\toprule
-Model & ILD@10 & Novelty@10 & nDCG@10 \\
-\midrule
-Sequential Markov & 0.9752 & 16.57 & 0.0919 \\
-Two-Stage Hybrid & 0.6151 & 18.85 & 0.0817 \\
-ItemKNN & 0.7392 & 19.04 & 0.0647 \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-Hybrid improves novelty and coverage, while Markov remains best on ranking quality.
+\begin{block}{Trade-off beyond-accuracy}
+\centering
+\includegraphics[width=0.98\linewidth]{poster_assets/figures/fig_beyond_accuracy.png}
 \end{block}
+
+\begin{exampleblock}{Lectura de resultados}
+\begin{itemize}
+  \item Markov lidera en calidad de ranking (MAP/nDCG).
+  \item Two-Stage mantiene HitRate competitivo y mayor cobertura de catalogo.
+  \item La ablacion \textit{sin cooc} produce la mayor caida: cooc es la senal estructural clave.
+\end{itemize}
+\end{exampleblock}
 
 \end{column}
 
-\begin{column}{0.31\textwidth}
+\separatorcolumn
 
-\begin{block}{Segment Heatmap (Two-Stage)}
+\begin{column}{\colwidth}
+
+\begin{block}{Analisis por segmentos}
 \centering
-\renewcommand{\arraystretch}{1.35}
-\begin{tabular}{lccc}
-\toprule
- & Head & Mid & Tail \\
-\midrule
-Short & \cellcolor{okgreen!25}0.2870 & \cellcolor{okgreen!15}0.2407 & \cellcolor{warnred!15}0.0371 \\
-Medium & \cellcolor{okgreen!25}0.2872 & \cellcolor{okgreen!12}0.2212 & \cellcolor{warnred!12}0.0314 \\
-Long & \cellcolor{warnred!20}0.0320 & \cellcolor{warnred!20}0.0330 & \cellcolor{warnred!30}0.0059 \\
-\bottomrule
-\end{tabular}
+\includegraphics[width=0.98\linewidth]{poster_assets/figures/fig_segment_heatmap.png}
 
-\vspace{0.4em}
-\small HitRate@10 by playlist size and target popularity.
+\vspace{0.2cm}
+\small HitRate@10 segun tamano de playlist y popularidad del target.
 \end{block}
 
-\begin{block}{Qualitative Examples}
-\textbf{Success case (medium + head):}
-Coherent soundtrack-like playlist where the model remains in the right musical niche and retrieves close target style.
+\begin{block}{Evidencia cualitativa}
+\textbf{Caso de acierto (perfil medium + head):} el modelo conserva coherencia musical y recupera recomendaciones cercanas al objetivo.
 
-\vspace{0.45em}
-\textbf{Failure case (long + tail):}
-Recommendations drift into nearby electronic subgenres, missing the specific niche identity of the target item.
+\vspace{0.35cm}
+\textbf{Caso de error (perfil long + tail):} deriva hacia subgeneros cercanos, sin capturar identidad de nicho del target.
 \end{block}
 
-\begin{alertblock}{What happened with LastFM?}
-LastFM was evaluated as optional enrichment, but not used as core component due to API latency and reproducibility constraints at large scale.
+\begin{alertblock}{Decision metodologica sobre LastFM}
+LastFM se evaluo como enriquecimiento opcional, pero se excluyo del pipeline principal por latencia de API y reproducibilidad limitada a gran escala.
 
-Final protocol prioritizes fully local, stable, and repeatable experiments.
+La evaluacion final prioriza un protocolo \textbf{local, estable y repetible}.
 \end{alertblock}
 
-\begin{exampleblock}{Takeaways}
+\begin{exampleblock}{Conclusiones}
 \begin{enumerate}
-  \item Two-Stage is competitive in Hit@10 and strong in catalog coverage.
-  \item Markov is a strong APC baseline and should always be reported.
-  \item Beyond-accuracy metrics reveal practical deployment trade-offs.
+  \item Two-Stage Hybrid es una base robusta y reproducible para APC.
+  \item Comparadores fuertes (Markov/ItemKNN) son esenciales para una evaluacion justa.
+  \item Las metricas beyond-accuracy muestran trade-offs relevantes para despliegue real.
 \end{enumerate}
 \end{exampleblock}
 
-\begin{block}{Poster Session}
+\begin{block}{Trabajo futuro}
 \begin{itemize}
-  \item Room: D201
-  \item Format: 8 min presentation + 7 min Q\&A
-  \item Printed A1 poster
+  \item Reranking sensible a cola larga (targets \textit{tail}).
+  \item Ajuste dinamico de pesos segun coherencia/tamano de playlist.
+  \item Embeddings semanticos livianos para reducir drift de genero.
 \end{itemize}
 \end{block}
 
 \end{column}
 
+\separatorcolumn
 \end{columns}
 \end{frame}
 \end{document}
