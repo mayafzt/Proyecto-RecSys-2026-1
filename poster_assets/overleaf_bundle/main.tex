@@ -95,10 +95,10 @@
   {\small \textbf{Mensaje clave:} el modelo hibrido mejora cobertura y mantiene un rendimiento competitivo sin depender de APIs externas.\par}
 \end{beamercolorbox}
 \begin{tikzpicture}[remember picture,overlay]
-  \node[anchor=north east, xshift=-1.05cm, yshift=-0.10cm, inner sep=0pt] at (current page.north east) {\includegraphics[height=5.05cm]{figures/UC.png}};
+  \node[anchor=north east, xshift=-0.72cm, yshift=-0.06cm, inner sep=0pt] at (current page.north east) {\includegraphics[height=5.05cm]{figures/UC.png}};
 \end{tikzpicture}
 \begin{beamercolorbox}[wd=\textwidth,ht=0.28cm,dp=0cm]{author in headline}\end{beamercolorbox}
-\vspace{0.08cm}
+\vspace{0.02cm}
 
 \begin{columns}[t]
 \separatorcolumn
@@ -194,27 +194,27 @@ La primera etapa reduce el espacio de busqueda a candidatos plausibles; la segun
 
 \begin{block}{7. Resultados principales (ejecucion 30\%)}
 \centering
-\includegraphics[width=0.98\linewidth]{figures/fig_main_benchmark.png}
+\includegraphics[width=0.93\linewidth]{figures/fig_main_benchmark.png}
 \end{block}
 
 \begin{columns}[t,totalwidth=\linewidth]
 \begin{column}{0.49\linewidth}
 \begin{block}{8. Ablations por senal}
 \centering
-\includegraphics[width=0.98\linewidth]{figures/fig_ablation_map_drop.png}
+\includegraphics[width=0.93\linewidth]{figures/fig_ablation_map_drop.png}
 \end{block}
 \end{column}
 \begin{column}{0.49\linewidth}
 \begin{block}{9. Robustez (ejecucion 20\%)}
 \centering
-\includegraphics[width=0.98\linewidth]{figures/fig_sensitivity_comparison.png}
+\includegraphics[width=0.93\linewidth]{figures/fig_sensitivity_comparison.png}
 \end{block}
 \end{column}
 \end{columns}
 
 \begin{block}{10. Trade-off beyond-accuracy}
 \centering
-\includegraphics[width=0.98\linewidth]{figures/fig_beyond_accuracy.png}
+\includegraphics[width=0.93\linewidth]{figures/fig_beyond_accuracy.png}
 \end{block}
 
 \begin{exampleblock}{11. Analisis de resultados}
@@ -225,7 +225,7 @@ La primera etapa reduce el espacio de busqueda a candidatos plausibles; la segun
   \item El metodo hibrido ofrece mejor balance entre exactitud y exploracion del catalogo.
 \end{itemize}
 
-\vspace{0.15cm}
+\vspace{0.08cm}
 La lectura conjunta de las metricas sugiere que el modelo no solo acierta mas o menos, sino que reordena mejor el espacio de recomendacion cuando necesita cubrir perfiles menos frecuentes.
 \end{exampleblock}
 
@@ -237,19 +237,19 @@ La lectura conjunta de las metricas sugiere que el modelo no solo acierta mas o 
 
 \begin{block}{12. Analisis por segmentos}
 \centering
-\includegraphics[width=0.98\linewidth]{figures/fig_segment_heatmap.png}
+\includegraphics[width=0.93\linewidth]{figures/fig_segment_heatmap.png}
 
-\vspace{0.2cm}
+\vspace{0.08cm}
 \small HitRate@10 segun tamano de playlist y popularidad del target.
 \end{block}
 
 \begin{block}{13. Evidencia cualitativa}
 \textbf{Caso de acierto (perfil medium + head):} el modelo conserva coherencia musical y recupera recomendaciones cercanas al objetivo.
 
-\vspace{0.35cm}
+\vspace{0.18cm}
 \textbf{Caso de error (perfil long + tail):} deriva hacia subgeneros cercanos, sin capturar identidad de nicho del target.
 
-\vspace{0.35cm}
+\vspace{0.18cm}
 Estos casos muestran el patron mas estable del sistema: cuando existe suficiente huella de co-ocurrencia, el reranking refina bien; cuando el target es muy raro, faltan senales externas para desambiguar.
 \end{block}
 
@@ -268,7 +268,7 @@ En un poster final, esta decision importa porque fija un mensaje metodologico cl
   \item Existe un trade-off explicito entre diversidad extrema y precision de ranking.
 \end{itemize}
 
-\vspace{0.15cm}
+\vspace{0.04cm}
 En consecuencia, el sistema es solido como base metodologica, pero todavia sensible a escenarios donde la coherencia musical no puede inferirse solo con co-ocurrencia local.
 \end{block}
 
@@ -279,7 +279,7 @@ En consecuencia, el sistema es solido como base metodologica, pero todavia sensi
   \item Las metricas beyond-accuracy muestran trade-offs relevantes para despliegue real.
 \end{enumerate}
 
-\vspace{0.15cm}
+\vspace{0.05cm}
 En conjunto, el trabajo deja una evidencia clara: la mejora de ranking no debe evaluarse aislada de cobertura y diversidad, porque en APC ambas dimensiones son parte del objetivo final.
 \end{exampleblock}
 
@@ -290,12 +290,12 @@ En conjunto, el trabajo deja una evidencia clara: la mejora de ranking no debe e
   \item Ajuste dinamico de pesos segun coherencia y tamano de playlist.
   \item Embeddings semanticos livianos para reducir drift de genero.
 \end{itemize}
-\vspace{0.08cm}
+\vspace{0.04cm}
 Evaluar estas variantes por segmento y por dominio musical ayudaria a medir estabilidad real fuera de la muestra actual.
 \end{block}
 
 \begin{exampleblock}{18. Referencias}
-\footnotesize
+\footnotesize\setlength{\itemsep}{0pt}
 \begin{enumerate}
   \item Raasveldt, M. y Muhleisen, H. \textit{DuckDB: An Embeddable Analytical Database}. CIDR, 2020.
   \item Chen, S. et al. \textit{Automatic Playlist Continuation through a Hybrid of Collaborative and Content Signals}. RecSys Workshop.
