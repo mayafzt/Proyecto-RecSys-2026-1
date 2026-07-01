@@ -142,25 +142,24 @@ La primera etapa reduce el espacio de busqueda a candidatos plausibles; la segun
 
 \begin{block}{5. Arquitectura (pipeline visual)}
 \centering
-\begin{tikzpicture}[node distance=1.15cm,>=latex,scale=0.90,transform shape]
-  \node[draw,rounded corners,fill=uclight,minimum width=3.8cm,minimum height=1.05cm,align=center] (c1) {Playlist parcial\\historial + contexto};
-  \node[draw,rounded corners,fill=ucblue!10,right=1.35cm of c1,minimum width=3.85cm,minimum height=1.05cm,align=center] (c2) {Retrieval\\candidatos por cooc};
-  \node[draw,rounded corners,fill=ucgold!20,right=1.35cm of c2,minimum width=4.0cm,minimum height=1.05cm,align=center] (c3) {Reranking\\suma ponderada local};
-  \node[draw,rounded corners,fill=ucgold!35,right=1.35cm of c3,minimum width=2.6cm,minimum height=1.05cm,align=center] (c4) {Top-10\\final};
+\begin{tikzpicture}[node distance=0.5cm,>=latex,scale=0.95,transform shape]
+  \node[draw,rounded corners,fill=uclight,minimum width=6.4cm,minimum height=0.95cm,align=center] (c1) {Contexto de playlist};
+  \node[draw,rounded corners,fill=ucblue!10,below=of c1,minimum width=6.4cm,minimum height=0.95cm,align=center] (c2) {Retrieval por co-ocurrencia};
+  \node[draw,rounded corners,fill=ucgold!20,below=of c2,minimum width=6.4cm,minimum height=0.95cm,align=center] (c3) {Reranking local ponderado};
+  \node[draw,rounded corners,fill=ucgold!35,below=of c3,minimum width=6.4cm,minimum height=0.95cm,align=center] (c4) {Top-10 final};
 
-  \node[draw,rounded corners,fill=white,below=0.9cm of c3,minimum width=1.55cm,minimum height=0.55cm,align=center,font=\scriptsize] (s1) {cooc};
-  \node[draw,rounded corners,fill=white,right=0.22cm of s1,minimum width=1.55cm,minimum height=0.55cm,align=center,font=\scriptsize] (s2) {popularidad};
-  \node[draw,rounded corners,fill=white,right=0.22cm of s2,minimum width=1.55cm,minimum height=0.55cm,align=center,font=\scriptsize] (s3) {artista};
-  \node[draw,rounded corners,fill=white,right=0.22cm of s3,minimum width=1.65cm,minimum height=0.55cm,align=center,font=\scriptsize] (s4) {nombre playlist};
-  \node[font=\scriptsize\bfseries, text=ucdark, below=0.18cm of c3] (legend) {Senales locales de reranking};
+  \node[draw,rounded corners,fill=white,right=0.85cm of c2,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s1) {Senales de reranking:\ cooc};
+  \node[draw,rounded corners,fill=white,below=0.18cm of s1,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s2) {popularidad};
+  \node[draw,rounded corners,fill=white,below=0.18cm of s2,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s3) {artista};
+  \node[draw,rounded corners,fill=white,below=0.18cm of s3,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s4) {nombre playlist};
 
   \draw[->,thick,ucblue] (c1) -- (c2);
   \draw[->,thick,ucblue] (c2) -- (c3);
   \draw[->,thick,ucblue] (c3) -- (c4);
-  \draw[->,thin,ucdark] (s1.north) -- (c3.south);
-  \draw[->,thin,ucdark] (s2.north) -- (c3.south);
-  \draw[->,thin,ucdark] (s3.north) -- (c3.south);
-  \draw[->,thin,ucdark] (s4.north) -- (c3.south);
+  \draw[->,thin,ucdark] (s1.west) -- (c3.east);
+  \draw[->,thin,ucdark] (s2.west) -- (c3.east);
+  \draw[->,thin,ucdark] (s3.west) -- (c3.east);
+  \draw[->,thin,ucdark] (s4.west) -- (c3.east);
 \end{tikzpicture}
 \end{block}
 
@@ -170,6 +169,14 @@ La primera etapa reduce el espacio de busqueda a candidatos plausibles; la segun
   \item Beyond-accuracy: ILD@10 (diversidad), Novelty@10, CatalogCoverage@10.
 \end{itemize}
 \end{exampleblock}
+
+  \\begin{block}{Trabajo futuro}
+  \\begin{itemize}
+    \\item Reranking sensible a cola larga (targets \\textit{tail}).
+    \\item Ajuste dinamico de pesos segun coherencia y tamano de playlist.
+    \\item Embeddings semanticos livianos para reducir drift de genero.
+  \\end{itemize}
+  \\end{block}
 
 \end{column}
 
@@ -267,17 +274,6 @@ En consecuencia, el sistema es solido como base metodologica, pero todavia sensi
 \vspace{0.15cm}
 En conjunto, el trabajo deja una evidencia clara: la mejora de ranking no debe evaluarse aislada de cobertura y diversidad, porque en APC ambas dimensiones son parte del objetivo final.
 \end{exampleblock}
-
-\begin{block}{17. Trabajo futuro}
-\begin{itemize}
-  \item Reranking sensible a cola larga (targets \textit{tail}).
-  \item Ajuste dinamico de pesos segun coherencia/tamano de playlist.
-  \item Embeddings semanticos livianos para reducir drift de genero.
-\end{itemize}
-
-\vspace{0.15cm}
-El siguiente paso natural es combinar estas mejoras con evaluacion por dominio musical o por region, para medir si la estrategia se mantiene estable fuera del muestreo actual.
-\end{block}
 
 \begin{block}{18. Referencias}
 \footnotesize
