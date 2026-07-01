@@ -49,6 +49,11 @@
 \setbeamercolor{enumerate item}{fg=ucblue}
 \setbeamercolor{enumerate subitem}{fg=ucgold}
 \setbeamercolor{item projected}{fg=white,bg=ucblue}
+\setbeamertemplate{itemize item}{\raise0.15ex\hbox{\color{okgreen}\small$\blacksquare$}}
+\setbeamertemplate{itemize subitem}{\raise0.12ex\hbox{\color{ucblue}\scriptsize$\blacktriangleright$}}
+\setbeamertemplate{itemize subsubitem}{\raise0.08ex\hbox{\color{ucgold}\scriptsize$\circ$}}
+\setbeamertemplate{enumerate item}{\colorbox{ucblue}{\color{white}\footnotesize\strut\insertenumlabel}}
+\setbeamertemplate{enumerate subitem}{\colorbox{okgreen}{\color{white}\footnotesize\strut\insertenumlabel}}
 
 \setbeamerfont{title}{size=\LARGE,series=\bfseries}
 \setbeamerfont{author}{size=\large}
@@ -86,7 +91,7 @@
   {\small \textbf{Mensaje clave:} el modelo hibrido mejora cobertura y mantiene un rendimiento competitivo sin depender de APIs externas.\par}
 \end{beamercolorbox}
 \begin{tikzpicture}[remember picture,overlay]
-  \node[anchor=north east, xshift=-0.35cm, yshift=-0.14cm, inner sep=0pt] at (current page.north east) {\includegraphics[width=4.1cm]{poster_assets/figures/UC.png}};
+  \node[anchor=north east, xshift=-0.95cm, yshift=-0.28cm, inner sep=0pt] at (current page.north east) {\includegraphics[width=3.55cm]{poster_assets/figures/UC.png}};
 \end{tikzpicture}
 \begin{beamercolorbox}[wd=\textwidth,ht=0.28cm,dp=0cm]{author in headline}\end{beamercolorbox}
 \vspace{0.6cm}
@@ -283,14 +288,14 @@ En consecuencia, el sistema es solido como base metodologica, pero todavia sensi
 En conjunto, el trabajo deja una evidencia clara: la mejora de ranking no debe evaluarse aislada de cobertura y diversidad, porque en APC ambas dimensiones son parte del objetivo final.
 \end{exampleblock}
 
-\begin{block}{18. Referencias}
+\begin{exampleblock}{18. Referencias}
 \footnotesize
 \begin{enumerate}
   \item Raasveldt, M. y Muhleisen, H. \textit{DuckDB: An Embeddable Analytical Database}. CIDR, 2020.
   \item Chen, S. et al. \textit{Automatic Playlist Continuation through a Hybrid of Collaborative and Content Signals}. RecSys Workshop.
   \item Schedl, M. et al. \textit{Current Challenges and Visions in Music Recommender Systems Research}. International Journal of Multimedia Information Retrieval.
 \end{enumerate}
-\end{block}
+\end{exampleblock}
 
 \end{column}
 
