@@ -1,0 +1,232 @@
+\documentclass[final]{beamer}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[orientation=portrait,size=a1,scale=1.03]{beamerposter}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{block title}{fg=white,bg=teal!70!black}
+\setbeamercolor{block body}{fg=black,bg=white}
+\setbeamercolor{title in headline}{fg=white,bg=teal!85!black}
+\setbeamercolor{author in headline}{fg=white,bg=teal!85!black}
+\setbeamercolor{institute in headline}{fg=white,bg=teal!85!black}
+
+\title{Automatic Playlist Continuation with Two-Stage Hybrid Ranking}
+\author{Agustin Llambias \and Amaya Quero \and Larry Uribe}
+\institute{Pontificia Universidad Catolica de Chile -- IIC3633 Sistemas Recomendadores (2026-1)}
+
+\begin{document}
+\begin{frame}[t]
+
+\begin{columns}[t,totalwidth=\textwidth]
+
+\begin{column}{0.32\textwidth}
+
+\begin{block}{Problem and Goal}
+Given a playlist context, recommend $k=10$ next tracks (APC).
+
+Main constraints:
+\begin{itemize}
+  \item Local and reproducible pipeline over Spotify playlists.
+  \item Stronger comparisons than simple baselines.
+  \item Include beyond-accuracy metrics and user-level examples.
+\end{itemize}
+\end{block}
+
+\begin{block}{Data and Evaluation Protocol}
+\begin{itemize}
+  \item Dataset: Spotify playlists (Kaggle), sampled with deterministic hash.
+  \item Main run: 30\% sample, 63,851 playlists evaluated.
+  \item Split: leave-last-out per playlist (minimum 3 tracks).
+  \item Metrics:
+  \begin{itemize}
+    \item Accuracy: HitRate@10, Precision@10, MAP@10, nDCG@10.
+    \item Beyond-accuracy: ILD@10, Novelty@10, CatalogCoverage@10.
+  \end{itemize}
+\end{itemize}
+\end{block}
+
+\begin{block}{Methods}
+\textbf{Main model: Two-Stage Hybrid}
+\begin{enumerate}
+  \item Retrieval: item-item co-occurrence neighbors (cosine normalized).
+  \item Reranking: weighted fusion of cooc, popularity, artist match, playlist-name tokens.
+\end{enumerate}
+
+\textbf{Comparators}
+\begin{itemize}
+  \item Sequential Markov (first-order transitions).
+  \item Collaborative ItemKNN.
+  \item Random, Most Popular, Playlist Name Popular.
+\end{itemize}
+
+\textbf{Ablations}
+\begin{itemize}
+  \item Remove each signal independently: cooc, pop, artist, name.
+\end{itemize}
+\end{block}
+
+\begin{block}{Main Results (30\% Full Run)}
+\small
+\begin{tabular}{lccc}
+\toprule
+Model & Hit@10 & MAP@10 & Cov@10 \\
+\midrule
+Sequential Markov & 0.1257 & 0.0813 & 0.0910 \\
+Two-Stage Hybrid & 0.1254 & 0.0684 & 0.1566 \\
+Collaborative ItemKNN & 0.0966 & 0.0551 & 0.1447 \\
+Playlist Name Pop & 0.0123 & 0.0046 & 0.0623 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.35em}
+Interpretation:
+\begin{itemize}
+  \item Markov leads ranking quality (MAP/nDCG).
+  \item Two-Stage keeps competitive HitRate and much higher coverage.
+\end{itemize}
+\end{block}
+
+\end{column}
+
+\begin{column}{0.36\textwidth}
+
+\begin{block}{Beyond-Accuracy and Trade-offs}
+\small
+\begin{tabular}{lccc}
+\toprule
+Model & ILD@10 & Novelty@10 & nDCG@10 \\
+\midrule
+Sequential Markov & 0.9752 & 16.57 & 0.0919 \\
+Two-Stage Hybrid & 0.6151 & 18.85 & 0.0817 \\
+ItemKNN & 0.7392 & 19.04 & 0.0647 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.35em}
+\begin{itemize}
+  \item Two-Stage increases novelty and catalog coverage.
+  \item Sequential Markov remains strongest on ranking quality.
+\end{itemize}
+\end{block}
+
+\begin{block}{Ablation Study (Two-Stage)}
+\small
+\begin{tabular}{lcc}
+\toprule
+Variant & Hit@10 & MAP@10 \\
+\midrule
+Two-Stage Hybrid & 0.1254 & 0.0684 \\
+Ablation sin cooc & 0.0387 & 0.0162 \\
+Ablation sin artist & 0.1143 & 0.0619 \\
+Ablation sin name & 0.1176 & 0.0631 \\
+Ablation sin pop & 0.1239 & 0.0679 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.35em}
+Largest drop appears when removing co-occurrence, confirming it is the structural core of the method.
+\end{block}
+
+\begin{block}{Segment Analysis (Two-Stage)}
+\small
+\begin{tabular}{lccc}
+\toprule
+Segment & N & Hit@10 & MAP@10 \\
+\midrule
+Short + Head & 4,526 & 0.2870 & 0.1659 \\
+Medium + Head & 10,456 & 0.2872 & 0.1618 \\
+Long + Tail & 8,332 & 0.0059 & 0.0022 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.35em}
+\begin{itemize}
+  \item Strong behavior on short/medium playlists with head targets.
+  \item Performance drops on long-tail contexts.
+\end{itemize}
+\end{block}
+
+\begin{block}{Qualitative Evidence}
+\textbf{Success case}\
+Playlist profile: medium + head.\
+Model keeps coherent soundtrack-like recommendations and recovers close target style.
+
+\vspace{0.5em}
+\textbf{Failure case}\
+Playlist profile: long + tail.\
+Recommendations drift to nearby electronic subgenres, missing niche target identity.
+
+\vspace{0.5em}
+This supports the quantitative long-tail gap shown in segment analysis.
+\end{block}
+
+\end{column}
+
+\begin{column}{0.32\textwidth}
+
+\begin{block}{Sensitivity Run (20\%)}
+\small
+\begin{tabular}{lcc}
+\toprule
+Model & Hit@10 & MAP@10 \\
+\midrule
+Sequential Markov & 0.0931 & 0.0618 \\
+Two-Stage Hybrid & 0.0934 & 0.0457 \\
+ItemKNN & 0.0642 & 0.0333 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.35em}
+Relative pattern remains stable: Markov best ranking, Two-Stage stronger coverage and novelty.
+\end{block}
+
+\begin{block}{Conclusions}
+\begin{enumerate}
+  \item Two-Stage Hybrid is competitive in HitRate and clearly stronger in catalog coverage.
+  \item Sequential Markov is a strong baseline and must be included in APC evaluations.
+  \item Co-occurrence is indispensable; artist/name add meaningful incremental value.
+  \item Beyond-accuracy metrics reveal practical trade-offs not visible from MAP alone.
+\end{enumerate}
+\end{block}
+
+\begin{block}{Future Work}
+\begin{itemize}
+  \item Tail-aware reranking for niche targets.
+  \item Context-adaptive weighting by playlist length/coherence.
+  \item Lightweight semantic embeddings to reduce genre drift.
+\end{itemize}
+\end{block}
+
+\begin{block}{Reproducibility Artifacts}
+Main files in repository:
+\begin{itemize}
+  \item resultados_hito2_final_30_full.csv
+  \item resultados_hito2_final_30_full_segmentos.csv
+  \item resultados_hito2_final_30_full_ejemplos.csv
+  \item resultados_hito2_final_20_sens.csv
+\end{itemize}
+Execution and monitoring scripts:
+\begin{itemize}
+  \item scripts/run_final_experiments.ps1
+  \item scripts/check_final_runs.ps1
+\end{itemize}
+\end{block}
+
+\begin{block}{Poster Session Logistics}
+\begin{itemize}
+  \item Session room: D201.
+  \item Presentation format: 8 minutes talk + 7 minutes Q\&A.
+  \item Print recommendation: A1 physical poster.
+  \item Bring tape (scotch, no double-face).
+  \item Coevaluation: complete the form for all posters in your block except your own.
+\end{itemize}
+\end{block}
+
+\end{column}
+
+\end{columns}
+\end{frame}
+\end{document}
