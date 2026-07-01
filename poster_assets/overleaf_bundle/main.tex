@@ -38,9 +38,9 @@
 \setbeamercolor{author in headline}{fg=white,bg=ucgold}
 \setbeamercolor{block title}{fg=white,bg=ucblue}
 \setbeamercolor{block body}{fg=black,bg=white}
-\setbeamercolor{alertblock title}{fg=white,bg=ucdark}
+\setbeamercolor{alertblock title}{fg=white,bg=okgreen}
 \setbeamercolor{alertblock body}{fg=black,bg=uclight}
-\setbeamercolor{exampleblock title}{fg=white,bg=ucgold}
+\setbeamercolor{exampleblock title}{fg=white,bg=okgreen!85!black}
 \setbeamercolor{exampleblock body}{fg=black,bg=uclight}
 \setbeamercolor{structure}{fg=ucblue}
 \setbeamercolor{itemize item}{fg=ucblue}
@@ -86,7 +86,7 @@
   {\small \textbf{Mensaje clave:} el modelo hibrido mejora cobertura y mantiene un rendimiento competitivo sin depender de APIs externas.\par}
 \end{beamercolorbox}
 \begin{tikzpicture}[remember picture,overlay]
-  \node[anchor=north east, xshift=-0.6cm, yshift=-0.32cm, inner sep=0pt] at (current page.north east) {\includegraphics[width=2.55cm]{figures/UC.png}};
+  \node[anchor=north east, xshift=-0.35cm, yshift=-0.14cm, inner sep=0pt] at (current page.north east) {\includegraphics[width=4.1cm]{figures/UC.png}};
 \end{tikzpicture}
 \begin{beamercolorbox}[wd=\textwidth,ht=0.28cm,dp=0cm]{author in headline}\end{beamercolorbox}
 \vspace{0.6cm}
@@ -178,13 +178,12 @@ La primera etapa reduce el espacio de busqueda a candidatos plausibles; la segun
 \end{exampleblock}
 
 \begin{block}{17. Trabajo futuro}
+\footnotesize
 \begin{itemize}
   \item Reranking sensible a cola larga (targets \textit{tail}).
   \item Ajuste dinamico de pesos segun coherencia y tamano de playlist.
   \item Embeddings semanticos livianos para reducir drift de genero.
 \end{itemize}
-\vspace{0.1cm}
-Evaluar estas variantes por segmento y por dominio musical ayudaria a medir estabilidad real fuera de la muestra actual.
 \end{block}
 
 \end{column}
