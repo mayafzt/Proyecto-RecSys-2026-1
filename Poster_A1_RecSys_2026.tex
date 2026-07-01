@@ -42,6 +42,13 @@
 \setbeamercolor{alertblock body}{fg=black,bg=uclight}
 \setbeamercolor{exampleblock title}{fg=white,bg=ucgold}
 \setbeamercolor{exampleblock body}{fg=black,bg=uclight}
+\setbeamercolor{structure}{fg=ucblue}
+\setbeamercolor{itemize item}{fg=ucblue}
+\setbeamercolor{itemize subitem}{fg=ucgold}
+\setbeamercolor{itemize subsubitem}{fg=ucdark}
+\setbeamercolor{enumerate item}{fg=ucblue}
+\setbeamercolor{enumerate subitem}{fg=ucgold}
+\setbeamercolor{item projected}{fg=white,bg=ucblue}
 
 \setbeamerfont{title}{size=\LARGE,series=\bfseries}
 \setbeamerfont{author}{size=\large}
@@ -79,7 +86,7 @@
   {\small \textbf{Mensaje clave:} el modelo hibrido mejora cobertura y mantiene un rendimiento competitivo sin depender de APIs externas.\par}
 \end{beamercolorbox}
 \begin{tikzpicture}[remember picture,overlay]
-  \node[anchor=north east, xshift=-0.7cm, yshift=-0.45cm, inner sep=0pt] at (current page.north east) {\includegraphics[width=3.05cm]{poster_assets/figures/UC.png}};
+  \node[anchor=north east, xshift=-0.6cm, yshift=-0.32cm, inner sep=0pt] at (current page.north east) {\includegraphics[width=2.55cm]{poster_assets/figures/UC.png}};
 \end{tikzpicture}
 \begin{beamercolorbox}[wd=\textwidth,ht=0.28cm,dp=0cm]{author in headline}\end{beamercolorbox}
 \vspace{0.6cm}
@@ -148,7 +155,7 @@ La primera etapa reduce el espacio de busqueda a candidatos plausibles; la segun
   \node[draw,rounded corners,fill=ucgold!20,below=of c2,minimum width=6.4cm,minimum height=0.95cm,align=center] (c3) {Reranking local ponderado};
   \node[draw,rounded corners,fill=ucgold!35,below=of c3,minimum width=6.4cm,minimum height=0.95cm,align=center] (c4) {Top-10 final};
 
-  \node[draw,rounded corners,fill=white,right=0.85cm of c2,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s1) {Senales de reranking:\ cooc};
+  \node[draw,rounded corners,fill=white,right=0.85cm of c2,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s1) {Senales de reranking: cooc};
   \node[draw,rounded corners,fill=white,below=0.18cm of s1,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s2) {popularidad};
   \node[draw,rounded corners,fill=white,below=0.18cm of s2,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s3) {artista};
   \node[draw,rounded corners,fill=white,below=0.18cm of s3,minimum width=4.0cm,minimum height=0.55cm,align=left,font=\scriptsize,inner xsep=4pt] (s4) {nombre playlist};
@@ -170,13 +177,15 @@ La primera etapa reduce el espacio de busqueda a candidatos plausibles; la segun
 \end{itemize}
 \end{exampleblock}
 
-  \\begin{block}{Trabajo futuro}
-  \\begin{itemize}
-    \\item Reranking sensible a cola larga (targets \\textit{tail}).
-    \\item Ajuste dinamico de pesos segun coherencia y tamano de playlist.
-    \\item Embeddings semanticos livianos para reducir drift de genero.
-  \\end{itemize}
-  \\end{block}
+\begin{block}{17. Trabajo futuro}
+\begin{itemize}
+  \item Reranking sensible a cola larga (targets \textit{tail}).
+  \item Ajuste dinamico de pesos segun coherencia y tamano de playlist.
+  \item Embeddings semanticos livianos para reducir drift de genero.
+\end{itemize}
+\vspace{0.1cm}
+Evaluar estas variantes por segmento y por dominio musical ayudaria a medir estabilidad real fuera de la muestra actual.
+\end{block}
 
 \end{column}
 
