@@ -75,6 +75,8 @@
   {\large \textbf{Two-Stage Hybrid vs. Baselines Secuenciales y Colaborativos}\par}
   {\usebeamerfont{author}\insertauthor\par}
   {\usebeamerfont{institute}\insertinstitute}
+  \vspace{0.15cm}
+  {\small \textbf{Mensaje clave:} el modelo hibrido mejora cobertura y mantiene un rendimiento competitivo sin depender de APIs externas.\par}
 \end{beamercolorbox}
 \begin{beamercolorbox}[wd=\textwidth,ht=0.28cm,dp=0cm]{author in headline}\end{beamercolorbox}
 \vspace{0.6cm}
@@ -89,11 +91,16 @@ La tarea de \textit{Automatic Playlist Continuation} (APC) consiste en recomenda
 
 En escenarios reales, APC enfrenta dos tensiones: maximizar calidad de ranking y mantener diversidad/cobertura para evitar recomendaciones redundantes.
 
-Este trabajo propone un enfoque reproducible y local, sin dependencia operacional de APIs externas.
+Este trabajo propone un enfoque reproducible y local, sin dependencia operacional de APIs externas. La idea es capturar senales de co-ocurrencia y contexto minimo para producir recomendaciones coherentes, pero tambien utiles para exploracion del catalogo.
+
+La contribucion principal es un protocolo completo de evaluacion que combina exactitud, cobertura y analisis por segmentos sobre un mismo conjunto de playlists.
 \end{block}
 
 \begin{alertblock}{2. Pregunta de investigacion y objetivos}
 \textbf{Pregunta:} Que tan competitivo es un sistema APC local y reproducible de dos etapas frente a metodos secuenciales y colaborativos, al evaluar tanto accuracy como metricas beyond-accuracy.
+
+\vspace{0.15cm}
+\textbf{Hipotesis de trabajo:} la co-ocurrencia debe dominar la calidad estructural del ranking, mientras que el reranking local ayuda a sostener cobertura y diversidad.
 
 \vspace{0.25cm}
 \textbf{Objetivos:}
@@ -120,6 +127,8 @@ Este trabajo propone un enfoque reproducible y local, sin dependencia operaciona
   \item \textbf{Reranking}: fusion ponderada de cooc + popularidad + artista + nombre de playlist.
 \end{enumerate}
 
+La primera etapa reduce el espacio de busqueda a candidatos plausibles; la segunda reordena con senales locales que ayudan a recuperar contexto y a suavizar sesgos de popularidad.
+
 \textbf{Comparadores incluidos}
 \begin{itemize}
   \item Sequential Markov (primer orden)
@@ -130,14 +139,24 @@ Este trabajo propone un enfoque reproducible y local, sin dependencia operaciona
 
 \begin{block}{5. Arquitectura (pipeline visual)}
 \centering
-\begin{tikzpicture}[node distance=0.82cm,>=latex,scale=0.94,transform shape]
-  \node[draw,rounded corners,fill=uclight,minimum width=3.5cm,minimum height=1.0cm] (c1) {Contexto playlist};
-  \node[draw,rounded corners,fill=uclight,right=1.2cm of c1,minimum width=3.4cm,minimum height=1.0cm] (c2) {Retrieval cooc};
-  \node[draw,rounded corners,fill=uclight,right=1.2cm of c2,minimum width=3.6cm,minimum height=1.0cm] (c3) {Reranking hibrido};
-  \node[draw,rounded corners,fill=ucgold!25,right=1.2cm of c3,minimum width=2.6cm,minimum height=1.0cm] (c4) {Top-10};
+\begin{tikzpicture}[node distance=0.65cm,>=latex,scale=0.86,transform shape]
+  \node[draw,rounded corners,fill=uclight,minimum width=3.4cm,minimum height=1.0cm,align=center] (c1) {Playlist parcial\\historial + contexto};
+  \node[draw,rounded corners,fill=ucblue!10,right=1.0cm of c1,minimum width=3.4cm,minimum height=1.0cm,align=center] (c2) {Retrieval\\candidatos por cooc};
+  \node[draw,rounded corners,fill=ucgold!20,right=1.0cm of c2,minimum width=3.7cm,minimum height=1.0cm,align=center] (c3) {Reranking\\suma ponderada local};
+  \node[draw,rounded corners,fill=ucgold!35,right=1.0cm of c3,minimum width=2.4cm,minimum height=1.0cm,align=center] (c4) {Top-10\\final};
+
+  \node[draw,rounded corners,fill=white,below=0.45cm of c2,minimum width=1.55cm,minimum height=0.55cm,align=center,font=\scriptsize] (s1) {cooc};
+  \node[draw,rounded corners,fill=white,right=0.18cm of s1,minimum width=1.55cm,minimum height=0.55cm,align=center,font=\scriptsize] (s2) {popularidad};
+  \node[draw,rounded corners,fill=white,right=0.18cm of s2,minimum width=1.55cm,minimum height=0.55cm,align=center,font=\scriptsize] (s3) {artista};
+  \node[draw,rounded corners,fill=white,right=0.18cm of s3,minimum width=1.65cm,minimum height=0.55cm,align=center,font=\scriptsize] (s4) {nombre playlist};
+
   \draw[->,thick,ucblue] (c1) -- (c2);
   \draw[->,thick,ucblue] (c2) -- (c3);
   \draw[->,thick,ucblue] (c3) -- (c4);
+  \draw[->,thin,ucdark] (s1.north) -- (c2.south);
+  \draw[->,thin,ucdark] (s2.north) -- (c3.south);
+  \draw[->,thin,ucdark] (s3.north) -- (c3.south);
+  \draw[->,thin,ucdark] (s4.north) -- (c3.south);
 \end{tikzpicture}
 \end{block}
 
@@ -186,6 +205,9 @@ Este trabajo propone un enfoque reproducible y local, sin dependencia operaciona
   \item La ablacion \textit{sin cooc} produce la mayor caida: cooc es la senal estructural clave.
   \item El metodo hibrido ofrece mejor balance entre exactitud y exploracion del catalogo.
 \end{itemize}
+
+\vspace{0.15cm}
+La lectura conjunta de las metricas sugiere que el modelo no solo acierta mas o menos, sino que reordena mejor el espacio de recomendacion cuando necesita cubrir perfiles menos frecuentes.
 \end{exampleblock}
 
 \end{column}
@@ -207,12 +229,17 @@ Este trabajo propone un enfoque reproducible y local, sin dependencia operaciona
 
 \vspace{0.35cm}
 \textbf{Caso de error (perfil long + tail):} deriva hacia subgeneros cercanos, sin capturar identidad de nicho del target.
+
+\vspace{0.35cm}
+Estos casos muestran el patron mas estable del sistema: cuando existe suficiente huella de co-ocurrencia, el reranking refina bien; cuando el target es muy raro, faltan senales externas para desambiguar.
 \end{block}
 
 \begin{alertblock}{14. Decision metodologica sobre LastFM}
 LastFM se evaluo como enriquecimiento opcional, pero se excluyo del pipeline principal por latencia de API y reproducibilidad limitada a gran escala.
 
 La evaluacion final prioriza un protocolo \textbf{local, estable y repetible}.
+
+En un poster final, esta decision importa porque fija un mensaje metodologico claro: la validez experimental depende de que el sistema pueda volver a ejecutarse con las mismas entradas y sin costo operacional oculto.
 \end{alertblock}
 
 \begin{block}{15. Discusion y limitaciones}
@@ -221,6 +248,9 @@ La evaluacion final prioriza un protocolo \textbf{local, estable y repetible}.
   \item La ausencia de embeddings semanticos limita la capacidad de generalizacion en nichos.
   \item Existe un trade-off explicito entre diversidad extrema y precision de ranking.
 \end{itemize}
+
+\vspace{0.15cm}
+En consecuencia, el sistema es solido como base metodologica, pero todavia sensible a escenarios donde la coherencia musical no puede inferirse solo con co-ocurrencia local.
 \end{block}
 
 \begin{exampleblock}{16. Conclusiones}
@@ -229,6 +259,9 @@ La evaluacion final prioriza un protocolo \textbf{local, estable y repetible}.
   \item Comparadores fuertes (Markov/ItemKNN) son esenciales para una evaluacion justa.
   \item Las metricas beyond-accuracy muestran trade-offs relevantes para despliegue real.
 \end{enumerate}
+
+\vspace{0.15cm}
+En conjunto, el trabajo deja una evidencia clara: la mejora de ranking no debe evaluarse aislada de cobertura y diversidad, porque en APC ambas dimensiones son parte del objetivo final.
 \end{exampleblock}
 
 \begin{block}{17. Trabajo futuro}
@@ -237,6 +270,9 @@ La evaluacion final prioriza un protocolo \textbf{local, estable y repetible}.
   \item Ajuste dinamico de pesos segun coherencia/tamano de playlist.
   \item Embeddings semanticos livianos para reducir drift de genero.
 \end{itemize}
+
+\vspace{0.15cm}
+El siguiente paso natural es combinar estas mejoras con evaluacion por dominio musical o por region, para medir si la estrategia se mantiene estable fuera del muestreo actual.
 \end{block}
 
 \begin{block}{18. Referencias}
