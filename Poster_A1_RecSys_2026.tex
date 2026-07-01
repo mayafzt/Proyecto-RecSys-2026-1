@@ -63,7 +63,7 @@
 \setbeamerfont{author}{size=\large}
 \setbeamerfont{institute}{size=\normalsize}
 \setbeamerfont{block title}{size=\large,series=\bfseries}
-\setbeamerfont{block body}{size=\normalsize}
+\setbeamerfont{block body}{size=\small}
 \setlength{\leftmargini}{1.1em}
 
 % ====================
@@ -71,8 +71,8 @@
 % ====================
 \newlength{\sepwidth}
 \newlength{\colwidth}
-\setlength{\sepwidth}{0.025\paperwidth}
-\setlength{\colwidth}{0.30\paperwidth}
+\setlength{\sepwidth}{0.01\paperwidth}
+\setlength{\colwidth}{0.315\paperwidth}
 \newcommand{\separatorcolumn}{\begin{column}{\sepwidth}\end{column}}
 
 % ====================
@@ -95,10 +95,10 @@
   {\small \textbf{Mensaje clave:} el modelo hibrido mejora cobertura y mantiene un rendimiento competitivo sin depender de APIs externas.\par}
 \end{beamercolorbox}
 \begin{tikzpicture}[remember picture,overlay]
-  \node[anchor=north east, xshift=-0.85cm, yshift=-0.08cm, inner sep=0pt] at (current page.north east) {\includegraphics[height=5.2cm]{poster_assets/figures/UC.png}};
+  \node[anchor=north east, xshift=-1.05cm, yshift=-0.10cm, inner sep=0pt] at (current page.north east) {\includegraphics[height=5.05cm]{poster_assets/figures/UC.png}};
 \end{tikzpicture}
 \begin{beamercolorbox}[wd=\textwidth,ht=0.28cm,dp=0cm]{author in headline}\end{beamercolorbox}
-\vspace{0.28cm}
+\vspace{0.08cm}
 
 \begin{columns}[t]
 \separatorcolumn
