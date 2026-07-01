@@ -2,7 +2,8 @@
 \mode<presentation>{\usetheme{default}}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[orientation=portrait,size=a1,scale=1.08]{beamerposter}
+\usepackage{lmodern}
+\usepackage[orientation=portrait,size=a1,scale=1.15]{beamerposter}
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{amsmath}
@@ -33,6 +34,15 @@
 \setbeamercolor{exampleblock title}{fg=white,bg=okgreen}
 \setbeamercolor{exampleblock body}{fg=black,bg=white}
 
+% Improve readability at print distance
+\setbeamerfont{title}{size=\LARGE,series=\bfseries}
+\setbeamerfont{author}{size=\large}
+\setbeamerfont{institute}{size=\normalsize}
+\setbeamerfont{block title}{size=\large,series=\bfseries}
+\setbeamerfont{block body}{size=\normalsize}
+\setbeamerfont{itemize/enumerate body}{size=\normalsize}
+\setlength{\leftmargini}{1.2em}
+
 \title{Automatic Playlist Continuation (APC): Hybrid Two-Stage Recommender}
 \author{Agustin Llambias \and Amaya Quero \and Larry Uribe}
 \institute{Pontificia Universidad Catolica de Chile -- IIC3633 Sistemas Recomendadores (2026-1)}
@@ -41,7 +51,7 @@
 \begin{frame}[t]
 \begin{columns}[t,totalwidth=\textwidth]
 
-\begin{column}{0.31\textwidth}
+\begin{column}{0.30\textwidth}
 \begin{alertblock}{Research Question}
 How competitive is a local, reproducible Two-Stage APC system against stronger alternatives when including beyond-accuracy metrics?
 \end{alertblock}
@@ -88,7 +98,7 @@ LastFM was tested as optional enrichment but excluded from the core pipeline due
 \end{exampleblock}
 \end{column}
 
-\begin{column}{0.38\textwidth}
+\begin{column}{0.40\textwidth}
 \begin{block}{Main Benchmark and Beyond-Accuracy}
 \centering
 \includegraphics[width=0.98\linewidth]{figures/fig_main_benchmark.png}
@@ -112,7 +122,7 @@ LastFM was tested as optional enrichment but excluded from the core pipeline due
 \end{columns}
 \end{column}
 
-\begin{column}{0.31\textwidth}
+\begin{column}{0.30\textwidth}
 \begin{block}{Segment Analysis}
 \centering
 \includegraphics[width=0.98\linewidth]{figures/fig_segment_heatmap.png}
@@ -141,6 +151,10 @@ LastFM was tested as optional enrichment but excluded from the core pipeline due
   \item Format: 8 min + 7 min Q\&A
   \item A1 printed poster
 \end{itemize}
+\end{block}
+
+\begin{block}{Print Tip}
+If text still looks dense in your printer preview, increase poster zoom in Overleaf and export with default PDF settings (no compression).
 \end{block}
 \end{column}
 
