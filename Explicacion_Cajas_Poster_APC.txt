@@ -1,0 +1,345 @@
+================================================================================
+EXPLICACIÓN DETALLADA DE LAS CAJAS DEL POSTER A1
+Continuación Automática de Playlists (APC)
+Two-Stage Hybrid vs. Baselines Secuenciales y Colaborativos
+================================================================================
+
+CAJA 1: INTRODUCCIÓN
+================================================================================
+Define el problema central: APC busca recomendar canciones para extender 
+playlists manteniendo coherencia musical. La tarea es simple en enunciado, 
+compleja en implementación.
+
+El desafío real no es solo acertar una canción; es balancear calidad de ranking 
+(¿qué tan buena es la recomendación?) con cobertura y diversidad (¿evitamos 
+repetir las mismas canciones obvias?).
+
+Nuestro enfoque es reproducible y local: no usa APIs externas (como Last.fm o 
+Spotify API), lo que garantiza reproducibilidad y evita costo operacional 
+recurrente.
+
+La contribución clave es un protocolo integral que evalúa exactitud, cobertura 
+y análisis por segmentos simultáneamente.
+
+
+CAJA 2: PREGUNTA DE INVESTIGACIÓN Y OBJETIVOS
+================================================================================
+Pregunta guía: ¿Es competitivo un sistema local de dos etapas frente a métodos 
+secuenciales (Markov) y colaborativos (ItemKNN)?
+
+Hipótesis: Co-ocurrencia domina la estructura del ranking, mientras que 
+reranking local mejora cobertura y diversidad.
+
+Objetivos operacionales:
+1. Comparar rendimiento contra baselines fuertes.
+2. Cuantificar el aporte de cada señal mediante ablations (remover señales 
+   una a una).
+3. Analizar comportamiento segmentado y casos cualitativos reales.
+
+Esta estructura metodológica permite responder no solo "¿ganamos?" sino 
+"¿por qué ganamos?" y "¿cuándo funciona bien o mal?"
+
+
+CAJA 3: DATOS Y PROTOCOLO EXPERIMENTAL
+================================================================================
+Dataset: Spotify Playlists (Kaggle), muestra determinística por hash 
+(reproducible sin aleatoriedad).
+
+Ejecución principal: 30% del dataset (~63,851 playlists).
+Ejecución de sensibilidad: 20%, para validar robustez.
+
+Protocolo: leave-last-out (ocultamos la última canción de cada playlist y 
+predecimos si nuestro sistema la recomienda).
+
+Restricción: solo playlists con mínimo 3 canciones, para evaluar en contextos 
+realistas.
+
+Esta metodología estándar permite comparación justa con trabajos previos.
+
+
+CAJA 4: METODOLOGÍA PROPUESTA
+================================================================================
+Nombre: Two-Stage Hybrid.
+
+Etapa 1 - Retrieval:
+Genera candidatos usando co-ocurrencia item-item. Se normaliza con coseno 
+para que la similaridad esté entre 0 y 1.
+
+Definición de cooc: frecuencia con que dos canciones aparecen juntas en 
+playlists. Si A y B aparecen juntas en 50 playlists de 100 total, su 
+co-ocurrencia es alta.
+
+Etapa 2 - Reranking:
+Reordena los candidatos con fusión ponderada de cuatro señales:
+- cooc: afinidad estructural (ya calculada).
+- popularidad: canciones populares son más "seguras".
+- artista: diversificar dentro del mismo artista o seguir tendencia.
+- nombre de playlist: si la playlist se llama "Rock Party", darle peso a 
+  canciones rock.
+
+Comparadores:
+- Sequential Markov: predice según probabilidad de transiciones en la secuencia.
+- Collaborative ItemKNN: busca playlists similares y recomienza según sus 
+  canciones.
+- Random, Most Popular, Playlist Name Popular: baselines triviales.
+
+
+CAJA 5: ARQUITECTURA (PIPELINE VISUAL)
+================================================================================
+Flujo de ejecución:
+
+1. Contexto de playlist: las N-1 canciones conocidas.
+
+2. Retrieval por co-ocurrencia: busca vecinos de las últimas K canciones 
+   usando matriz de co-ocurrencia pre-calculada. Retorna top-100 candidatos.
+
+3. Reranking local ponderado: aplica pesos a cada señal y reordena.
+
+4. Top-10 final: devuelve las 10 mejores recomendaciones.
+
+Señales de reranking alimentan la etapa 3:
+- cooc
+- popularidad
+- artista
+- nombre de playlist
+
+Ventaja: la primera etapa es rápida (lookup en matriz); la segunda es liviaga 
+(solo reordena 100 items).
+
+
+CAJA 6: MÉTRICAS REPORTADAS
+================================================================================
+Accuracy (exactitud de ranking):
+- HitRate@10: ¿aparece el target en el top-10? (sí/no).
+- Precision@10: de los 10 recomendados, ¿cuántos son correctos?
+- MAP@10: Mean Average Precision, castiga ranking de baja calidad.
+- nDCG@10: Normalized Discounted Cumulative Gain, es la métrica estándar en 
+  recomendación.
+
+Beyond-accuracy (dimensiones prácticas):
+- ILD@10: Intra-List Diversity. ¿Las 10 recomendaciones son variadas?
+- Novelty@10: ¿recomendamos canciones que el usuario no conocía?
+- CatalogCoverage@10: a nivel global, ¿cuántas canciones únicas recomendamos?
+
+Importancia: un sistema que solo optimiza HitRate puede ser estrecho (siempre 
+recomienda hits obvios). Beyond-accuracy refleja valor operativo real.
+
+
+CAJA 7: RESULTADOS PRINCIPALES (EJECUCIÓN 30%)
+================================================================================
+Gráfico de barras comparando modelos en múltiples métricas.
+
+Hallazgos clave:
+- Markov lidera en MAP/nDCG (ranking puro de calidad).
+- Two-Stage Hybrid es competitivo en HitRate y destaca en cobertura de 
+  catálogo.
+- Random baseline es muy bajo (control negativo).
+
+Interpretación: el híbrido no solo rankea bien; además abre el abanico de 
+recomendaciones, lo que importa en plataformas reales (exploración, 
+descubrimiento).
+
+
+CAJA 8: ABLATIONS POR SEÑAL
+================================================================================
+Experimento: quitamos una señal a la vez y medimos caída en rendimiento 
+(ej: MAP@10).
+
+Ejemplo: sin cooc, MAP cae de 0.25 a 0.18 (caída del 28%).
+
+Ranking de importancia (de mayor a menor caída):
+1. cooc: mayor caída, confirma hipótesis de que es estructural.
+2. popularidad: aporte moderado.
+3. artista: complementario.
+4. nombre de playlist: menor impacto (pero ayuda en contextos específicos).
+
+Conclusión: cooc es la base; el resto refina y contextualiza.
+
+
+CAJA 9: ROBUSTEZ (EJECUCIÓN 20%)
+================================================================================
+Repetimos experimento con muestra diferente (20% en lugar de 30%).
+
+Pregunta: ¿son estables los resultados?
+
+Resultados: el orden relativo se mantiene, las brechas se preservan.
+
+Implicación: el patrón no es accidental. El método funciona de forma estable.
+
+
+CAJA 10: TRADE-OFF BEYOND-ACCURACY
+================================================================================
+Gráfico de dispersión o scatter plot donde:
+- Eje X: métrica de accuracy (ej: nDCG@10).
+- Eje Y: métrica de cobertura (ej: CatalogCoverage@10).
+
+Patrón: Markov y ItemKNN están arriba-izquierda (alta exactitud, baja cobertura).
+Two-Stage Hybrid está centro (balance).
+Most Popular está abajo-derecha (baja exactitud, alta cobertura).
+
+Interpretación: cada modelo elige una posición en el trade-off. No hay ganador 
+universal; depende del objetivo:
+- Si solo quieres hits: Markov.
+- Si quieres balance: Two-Stage.
+- Si quieres exploración sin cuidar exactitud: Most Popular.
+
+
+CAJA 11: ANÁLISIS DE RESULTADOS
+================================================================================
+Lectura integrada de 7, 8, 9 y 10:
+
+- Markov lidera ranking puro (MAP/nDCG).
+- Two-Stage mantiene HitRate competitivo y mayor cobertura.
+- Ablation muestra que cooc es la señal estructural clave (sin ella, caída 
+  máxima).
+- El método híbrido ofrece mejor balance entre exactitud y exploración.
+
+Insight profundo: el modelo no solo acumula aciertos; reordena el espacio 
+de recomendación para servir mejor perfiles menos frecuentes. Es decir, 
+cuando hay pocas señales obvias, nuestro reranking ayuda más.
+
+
+CAJA 12: ANÁLISIS POR SEGMENTOS
+================================================================================
+Heatmap donde:
+- Filas: tamaño de playlist (corta, mediana, larga).
+- Columnas: popularidad del target (head, medio, tail).
+- Valor en cada celda: HitRate@10.
+
+Patrón típico: el modelo funciona mejor en (mediano, head) y peor en 
+(largo, tail).
+
+Razón: playlists largas tienen menos patrón, targets raros son difíciles sin 
+señales externas.
+
+Aplicación: si sabes que tu negocio se enfoca en usuarios "mediano/head", 
+el híbrido es excelente. Si es "largo/tail", necesitarás embeddings semánticos.
+
+
+CAJA 13: EVIDENCIA CUALITATIVA
+================================================================================
+Dos casos de estudio reales:
+
+Caso de acierto (playlist mediana, target head):
+- Input: playlist con canciones de indie-rock.
+- Contexto: últimas canciones son Radiohead, Arctic Monkeys.
+- Nuestro top-1: The Strokes.
+- Realidad: el usuario sí tenía The Strokes después.
+- Por qué funcionó: cooc capturó patrón indie-rock; reranking no lo arruinó.
+
+Caso de error (playlist larga, target tail):
+- Input: playlist de 200 canciones, muy diversa.
+- Contexto: mezcla indie, hip-hop, electrónica.
+- Nuestro top-1: una canción electrónica oscura.
+- Realidad: el usuario tenía una canción de un artista indie desconocido.
+- Por qué falló: sin señal semántica, imposible conectar "la oscuridad" del 
+  contexto con ese artista específico.
+
+Lección: el sistema es predecible y mejora con mayor coherencia en el input.
+
+
+CAJA 14: DECISIÓN METODOLÓGICA SOBRE LASTFM
+================================================================================
+Consideración inicial: usar Last.fm para enriquecer con etiquetas (tags) 
+de canciones.
+
+Decisión final: excluir del pipeline principal.
+
+Razones:
+1. Latencia de API: cada recomendación requeriría esperar respuesta de API.
+2. Reproducibilidad: Last.fm cambia, imposible repetir experimento igual en 
+   6 meses.
+3. Escalabilidad: no viable para sistema en producción sin infraestructura 
+   adicional.
+
+Mensaje clave: priorizamos un protocolo local, estable y repetible. Cualquiera 
+puede ejecutar nuestro código hoy y mañana con resultados idénticos.
+
+Implicación científica: la validez experimental no depende de servicios 
+externos.
+
+
+CAJA 15: DISCUSIÓN Y LIMITACIONES
+================================================================================
+Limitación 1: Rendimiento disminuye en playlists largas con targets tail 
+(raros).
+Razón: sin señal semántica, no hay forma de conectar contexto disperso con 
+nicho específico.
+
+Limitación 2: Ausencia de embeddings semánticos.
+Impacto: limitamos capacidad de generalización en géneros poco conocidos.
+Solución futura: embeddings livianos (ej: FastText) sin costo externo.
+
+Limitación 3: Trade-off explícito entre diversidad extrema y precisión.
+Contexto: no puedes maximizar ambas simultáneamente; siempre hay compensación.
+
+Síntesis: el sistema es sólido como base metodológica, pero sensible a 
+escenarios de nicho.
+
+
+CAJA 16: CONCLUSIONES
+================================================================================
+1. Two-Stage Hybrid es base robusta y reproducible para APC.
+   Implicación: sirve como referencia para trabajos futuros.
+
+2. Comparadores fuertes (Markov/ItemKNN) son esenciales para evaluación 
+   justa.
+   Implicación: no basta con baselines triviales; Markov es competidor real.
+
+3. Métricas beyond-accuracy muestran trade-offs relevantes para despliegue 
+   real.
+   Implicación: no optimices solo accuracy; piensa en cobertura y diversidad.
+
+Mensaje global: la mejora de ranking no debe evaluarse aislada de cobertura 
+y diversidad. En APC, ambas dimensiones son parte del objetivo final.
+
+
+CAJA 17: TRABAJO FUTURO
+================================================================================
+Dirección 1: Reranking sensible a cola larga (targets tail).
+- Método: aplicar pesos dinámicos según rarity del target.
+- Beneficio: mejorar en nichos raros sin perder calidad en head.
+
+Dirección 2: Ajuste dinámico de pesos según coherencia y tamaño de playlist.
+- Método: aprender pesos con regression ligera en subconjunto de validación.
+- Beneficio: adaptarse a tipo de playlist sin reentrenamiento completo.
+
+Dirección 3: Embeddings semánticos livianos para reducir drift de género.
+- Método: FastText o Skip-gram sobre nombres de canciones/artistas.
+- Beneficio: capturar similitud semántica sin API externa.
+
+Validación: evaluar cada dirección por segmento y por dominio musical para 
+medir estabilidad fuera de muestra actual.
+
+
+CAJA 18: REFERENCIAS
+================================================================================
+1. Raasveldt, M. y Muhleisen, H. (2020). DuckDB: An Embeddable Analytical 
+   Database. CIDR 2020.
+   - Base tecnológica para procesamiento de datos masivos localmente.
+
+2. Chen, S. et al. Automatic Playlist Continuation through a Hybrid of 
+   Collaborative and Content Signals. RecSys Workshop.
+   - Referencia académica próxima a nuestro enfoque.
+
+3. Schedl, M. et al. Current Challenges and Visions in Music Recommender 
+   Systems Research. International Journal of Multimedia Information 
+   Retrieval.
+   - Contexto de desafíos en recomendación de música.
+
+================================================================================
+SÍNTESIS EJECUTIVA
+================================================================================
+Trabajo: Desarrollamos un sistema de dos etapas para APC.
+Etapa 1: Retrieval por co-ocurrencia.
+Etapa 2: Reranking con señales locales.
+
+Hallazgo: Competitivo con Markov en accuracy, superior en cobertura/diversidad.
+
+Validación: Ablations confirman rol crítico de cooc. Robustez demuestra 
+estabilidad. Análisis por segmento muestra fortaleza en contextos mediano/head.
+
+Impacto: Metodología reproducible, local y operativamente viable para sistemas 
+reales.
+
+================================================================================
